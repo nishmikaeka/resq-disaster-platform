@@ -34,7 +34,7 @@ export class AuthService {
     }
 
     return {
-      id: user.id,
+      id: user.id, //these returning is again injected to generateToken function below then create a access_token //dbuser interface
       email: user.email,
       role: user.role,
     };
