@@ -1,8 +1,8 @@
 // apps/api/src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as passport from 'passport';
-import * as session from 'express-session';
+import passport from 'passport';
+import session from 'express-session';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -20,6 +20,7 @@ async function bootstrap() {
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
+        httpOnly: true,
       },
     }),
   );
@@ -39,9 +40,10 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type, Authorization',
   });
 
-  console.log('🚀 Backend started on port 3001');
-  console.log('🔐 Google OAuth ready — callback: /api/auth/callback/google');
+  const port = process.env.PORT || 3001;
+  await app.listen(port, '0.0.0.0'); // Important for Railway
 
-  await app.listen(3001);
+  console.log(`🚀 Backend started on port ${port}`);
+  console.log('🔐 Google OAuth ready — callback: /api/auth/callback/google');
 }
 bootstrap();
