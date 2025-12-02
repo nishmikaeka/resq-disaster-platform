@@ -23,6 +23,11 @@ export const metadata: Metadata = {
   title: "ResQ - Disaster Reporting", // Updated title
   description:
     "Report emergencies instantly and connect with local volunteers.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
