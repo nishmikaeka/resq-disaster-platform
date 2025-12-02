@@ -1,4 +1,3 @@
-// apps/api/src/types/class-validator.d.ts
 declare module 'class-validator' {
   export function IsNotEmpty(
     validationOptions?: ValidationOptions,

@@ -14,6 +14,8 @@ model User {
   role        Role       @default(VICTIM)
   image       String?
   phone       String?   
+  lat       Float?
+  lng       Float?
   createdAt   DateTime   @default(now())
 
   // Relations
@@ -29,6 +31,7 @@ model Incident {
   description String?
   location    Unsupported("geometry")
   media       String[]
+  phone       String
   urgency     Urgency   @default(MEDIUM)
   status      Status    @default(OPEN)
   userId      String

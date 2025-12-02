@@ -1,4 +1,3 @@
-// apps/web/app/page.tsx
 "use client";
 import Image from "next/image";
 
@@ -31,7 +30,7 @@ export default function Home() {
           onClick={() =>
             (window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/google`)
           }
-          className="w-full bg-black/30 border border-amber-50 cursor-pointer hover:bg-black/50 text-white font-medium text-sm sm:text-lg py-2 px-4 rounded-2xl shadow-2xl flex items-center justify-center gap-3 transition"
+          className="w-4/5 bg-black/30 border border-amber-50 cursor-pointer hover:bg-black/50 text-white font-medium text-sm sm:text-lg py-2 px-2 rounded-2xl shadow-2xl flex items-center justify-center gap-3 transition"
         >
           <svg className="w-6 h-6" viewBox="0 0 24 24">
             <path

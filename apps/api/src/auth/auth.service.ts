@@ -2,13 +2,8 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
-import { GoogleUser } from './google.strategy';
-
-interface DbUser {
-  id: string;
-  email: string;
-  role: string;
-}
+import { GoogleUser } from 'src/types/authInterfaces';
+import { DbUser } from 'src/types/authInterfaces';
 
 @Injectable()
 export class AuthService {
@@ -37,6 +32,11 @@ export class AuthService {
       id: user.id, //these returning is again injected to generateToken function below then create a access_token //dbuser interface
       email: user.email,
       role: user.role,
+      name: user.name,
+      phone: user.phone,
+      image: user.image,
+      lat: user.lat,
+      lng: user.lng,
     };
   }
 
@@ -45,9 +45,17 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       role: user.role,
+      name: user.name,
+      phone: user.phone,
+      image: user.image,
+      lat: user.lat,
+      lng: user.lng,
     };
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: '7d',
+      }),
     };
   }
 }

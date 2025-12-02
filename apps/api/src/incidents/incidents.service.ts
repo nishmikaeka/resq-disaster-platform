@@ -1,4 +1,3 @@
-// src/incidents/incidents.service.ts — IMMORTAL FINAL VERSION
 import {
   Injectable,
   BadRequestException,
@@ -7,7 +6,6 @@ import {
 import { CreateIncidentDto } from './dto/create-incident.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CloudinaryService } from '../cloudinary/cloudinary.service';
-import { Express } from 'express';
 import { randomUUID } from 'crypto';
 
 export interface CreatedIncident {
@@ -19,6 +17,8 @@ export interface CreatedIncident {
   createdAt: Date;
   location: string;
   user: any;
+  lat: number;
+  lng: number;
 }
 
 @Injectable()
@@ -54,10 +54,9 @@ export class IncidentsService {
       }
     }
 
-    // USE $queryRaw INSTEAD — returns properly typed result
     const result = await this.prisma.$queryRaw<CreatedIncident[]>`
       INSERT INTO incidents (
-        id, title, description, location, media, urgency, "userId", "createdAt"
+        id, title, description, location, media, urgency,phone ,"userId", "createdAt"
       ) VALUES (
         ${randomUUID()},
         ${title},
@@ -65,6 +64,7 @@ export class IncidentsService {
         ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326),
         ${mediaUrl ? [mediaUrl] : []}::text[],
         ${(dto.urgency || 'MEDIUM').toUpperCase()}::"Urgency",
+        ${dto.phone},
         ${userId},
         NOW()
       )
@@ -74,16 +74,18 @@ export class IncidentsService {
         description,
         urgency,
         media,
+        phone,
         "createdAt",
+        ST_X(location)::NUMERIC AS lng, 
+        ST_Y(location)::NUMERIC AS lat,
         ST_AsText(location) AS location,
         (SELECT row_to_json(u.*) FROM users u WHERE u.id = ${userId}) AS "user"
     `;
 
-    // Now 100% safe — result is typed array, we control
     if (!result || result.length === 0) {
       throw new InternalServerErrorException('Failed to create incident');
     }
 
-    return result[0]; // Clean single object — TypeScript & ESLint love this
+    return result[0];
   }
 }

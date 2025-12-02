@@ -1,61 +1,59 @@
-// apps/api/src/auth/auth.controller.ts
 import { Controller, Get, Req, UseGuards, Res } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import type { Request, Response } from 'express';
 import { JwtGuard } from './jwt.guard';
+import { PrismaService } from '../prisma/prisma.service';
+import { UserProfile } from 'src/types/authInterfaces';
+import { AuthUserPayload } from 'src/types/authInterfaces';
 
 interface AuthRequest extends Request {
-  user: {
-    id: string;
-    email: string;
-    role: string;
-  };
+  user: AuthUserPayload; // Use the complete structure here
 }
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private prisma: PrismaService,
+  ) {}
 
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth() {
-    // Initiates Google OAuth
-  }
+  async googleAuth() {}
 
   @Get('callback/google')
   @UseGuards(AuthGuard('google'))
-  googleAuthRedirect(
-    @Req() req: AuthRequest,
-    @Res({ passthrough: true }) res: Response,
-  ) {
+  googleAuthRedirect(@Req() req: AuthRequest, @Res() res: Response) {
     if (!req.user) {
-      // Handle error or redirect to login page
       return res.redirect('http://localhost:3000/login?error=auth_failed');
     }
 
-    // Generate token and set cookie
     const { access_token } = this.authService.generateToken(req.user);
 
-    res.cookie('access_token', access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      path: '/',
-    });
+    const redirectUrl = `http://localhost:3000/onboarding?access_token=${access_token}`;
 
-    // Perform redirect
-    res.redirect('http://localhost:3000/login');
+    return res.redirect(redirectUrl);
   }
+
   @Get('me')
   @UseGuards(JwtGuard)
-  getMe(@Req() req: AuthRequest) {
-    //returning user data to the frontend auth.ts getUser()
-    return {
-      userId: req.user.id,
-      email: req.user.email,
-      role: req.user.role,
-    };
+  async getMe(@Req() req: AuthRequest): Promise<UserProfile | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        lat: true,
+        lng: true,
+        image: true,
+        phone: true,
+      },
+    });
+
+    // Return the found user (or null if not found)
+    return user;
   }
 }

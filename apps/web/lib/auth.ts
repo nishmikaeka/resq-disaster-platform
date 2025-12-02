@@ -1,14 +1,31 @@
 // apps/web/lib/auth.ts
-import { cookies } from "next/headers";
 
-export async function getUser() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("access_token")?.value;
-  if (!token) return null;
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-  const res = await fetch("http://localhost:3001/api/auth/me", {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+export const useSaveTokenAndRedirect = () => {
+  const router = useRouter();
 
-  return res.ok ? await res.json() : null;
-}
+  useEffect(() => {
+    // Only run in browser
+    if (typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("access_token");
+    const redirect = params.get("redirect") || "/dashboard";
+
+    console.log("Current Query Params:", params.toString());
+
+    if (token) {
+      console.log("Token found! Saving and redirecting...");
+      localStorage.setItem("access_token", token);
+
+      // Clean the URL
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, "", cleanUrl);
+
+      // Force full reload to ensure dashboard sees the token
+      window.location.href = redirect;
+    }
+  }, [router]);
+};

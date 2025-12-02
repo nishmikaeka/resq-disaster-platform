@@ -18,9 +18,9 @@
     "allowSyntheticDefaultImports": true,
     "isolatedModules": true,
 
-    "moduleResolution": "node", // ← fixed
-    "baseUrl": ".", // ← fixed (dot instead of "./")
-    "ignoreDeprecations": "5.0", // ← silences ALL TS7 warnings
+    "moduleResolution": "node",
+    "baseUrl": ".",
+    "ignoreDeprecations": "5.0",
 
     "paths": {
       "@prisma/client": ["../../node_modules/.prisma/client"]

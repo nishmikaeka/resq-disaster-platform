@@ -7,13 +7,14 @@ export interface Incident {
   lat: number;
   lng: number;
   phone: string;
-  urgency?: "LOW" | "MEDIUM" | "HIGH";
+  urgency: "LOW" | "MEDIUM" | "HIGH";
   media?: { url: string; type?: string }[];
   distance?: number;
   status: "OPEN" | "IN_PROGRESS" | "RESOLVED"; // ← REQUIRED, NOT OPTIONAL
-  createdAt?: string;
+  createdAt: string;
   reporterId?: string;
   user: User;
+  userId: string;
   volunteerId?: string | null;
   volunteer?: User | null;
 }
