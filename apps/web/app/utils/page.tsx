@@ -1,3 +1,5 @@
+"use client";
+
 import { formatDistanceToNow } from "date-fns";
 import React, { useState, useEffect } from "react";
 
