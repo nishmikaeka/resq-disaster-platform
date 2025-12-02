@@ -2,15 +2,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as passport from 'passport';
-import session from 'express-session';
+import * as session from 'express-session';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Keep your global prefix — totally fine
   app.setGlobalPrefix('api');
 
-  // THIS IS THE CORRECT WAY — NO TS ERROR
+  // Session configuration
   app.use(
     session({
       secret:
@@ -19,13 +18,13 @@ async function bootstrap() {
       saveUninitialized: false,
       cookie: {
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        secure: process.env.NODE_ENV === 'production', // HTTPS only in prod
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
       },
     }),
   );
 
-  // Passport session support — REQUIRED for Google OAuth
+  // Passport initialization
   app.use(passport.initialize());
   app.use(passport.session());
 
@@ -40,8 +39,8 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type, Authorization',
   });
 
-  console.log('Backend started on port 3001');
-  console.log('Google OAuth ready — callback: /api/auth/callback/google');
+  console.log('🚀 Backend started on port 3001');
+  console.log('🔐 Google OAuth ready — callback: /api/auth/callback/google');
 
   await app.listen(3001);
 }
