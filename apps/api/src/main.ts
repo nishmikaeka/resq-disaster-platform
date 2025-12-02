@@ -1,4 +1,3 @@
-// apps/api/src/main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import passport from 'passport';
@@ -19,7 +18,7 @@ async function bootstrap() {
       cookie: {
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
         httpOnly: true,
       },
     }),
@@ -29,6 +28,7 @@ async function bootstrap() {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  // CORS configuration - UPDATED
   app.enableCors({
     origin: [
       'http://localhost:3000',
@@ -36,11 +36,21 @@ async function bootstrap() {
       'https://resq.lk',
     ],
     credentials: true,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: 'Content-Type, Authorization',
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Accept',
+      'Origin',
+      'Cache-Control',
+      'X-CSRF-Token',
+    ],
+    exposedHeaders: ['Set-Cookie'],
+    maxAge: 3600, // Cache preflight requests for 1 hour
   });
 
   const port = process.env.PORT || 3001;
-  await app.listen(port, '0.0.0.0'); // Important for Railway
+  await app.listen(port, '0.0.0.0');
 }
 bootstrap();
