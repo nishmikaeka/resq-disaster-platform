@@ -1,7 +1,7 @@
 import { useRouter } from "next/navigation";
 import { MapPin, Clock, UserRound, HandHelping } from "lucide-react";
 import type { Incident } from "../../types/types/incident";
-import { TimeAgo } from "../utils/page";
+import { TimeAgo } from "../utils/TimeAgo";
 import { useEffect, useState } from "react";
 import { User } from "./page";
 

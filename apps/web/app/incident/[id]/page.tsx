@@ -14,7 +14,7 @@ import {
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { User } from "../../dashboard/page";
-import { TimeAgo } from "../../utils/page";
+import { TimeAgo } from "../../utils/TimeAgo";
 import { Incident } from "../../../types/types/incident";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
