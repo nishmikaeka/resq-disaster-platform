@@ -26,12 +26,17 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   googleAuthRedirect(@Req() req: AuthRequest, @Res() res: Response) {
     if (!req.user) {
-      return res.redirect('http://localhost:3000/login?error=auth_failed');
+      return res.redirect(
+        `${process.env.FRONTEND_URL || 'https://resq-disaster-platform-web.vercel.app'}/login?error=auth_failed`,
+      );
     }
 
     const { access_token } = this.authService.generateToken(req.user);
 
-    const redirectUrl = `http://localhost:3000/onboarding?access_token=${access_token}`;
+    const redirectUrl = `${
+      process.env.FRONTEND_URL ||
+      'https://resq-disaster-platform-web.vercel.app'
+    }/onboarding?access_token=${access_token}`;
 
     return res.redirect(redirectUrl);
   }
