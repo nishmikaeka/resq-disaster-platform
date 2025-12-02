@@ -19,4 +19,7 @@ export class CreateIncidentDto {
   @IsOptional()
   @IsString()
   urgency?: 'LOW' | 'MEDIUM' | 'HIGH';
+
+  @IsString()
+  phone!: string;
 }

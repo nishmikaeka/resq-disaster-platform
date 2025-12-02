@@ -1,45 +1,44 @@
-// apps/api/src/auth/jwt.strategy.ts
-import { ExtractJwt, Strategy, StrategyOptions } from 'passport-jwt';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable } from '@nestjs/common';
-
-export interface JwtPayload {
-  sub: string;
-  email: string;
-  role: string;
-  iat?: number;
-  exp?: number;
-}
-
-export interface AuthenticatedUser {
-  id: string; // Mapped from 'sub'
-  email: string;
-  role: string;
-}
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
-    const options: StrategyOptions = {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  constructor(private prisma: PrismaService) {
+    //eslint-disable-next-line
+    super({
+      //eslint-disable-next-line
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'fallback-secret',
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    super(options);
+      secretOrKey: process.env.JWT_SECRET!,
+    });
   }
 
-  validate(payload: JwtPayload): AuthenticatedUser {
-    if (!payload.sub || !payload.email || !payload.role) {
-      throw new Error('Invalid JWT payload');
+  async validate(payload: any) {
+    console.log('JWT payload:', payload);
+
+    // Fetch FULL user from DB
+    const user = await this.prisma.user.findUnique({
+      //eslint-disable-next-line
+      where: { id: payload.sub },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        phone: true,
+        lat: true,
+        lng: true,
+        image: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
     }
 
-    return {
-      id: payload.sub,
-      email: payload.email,
-      role: payload.role,
-    };
+    console.log('User from DB:', user);
+    return user;
   }
 }
