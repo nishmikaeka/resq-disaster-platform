@@ -10,7 +10,7 @@ interface AuthRequest extends Request {
   user: AuthUserPayload;
 }
 
-@Controller('api/auth') // ← KEEP 'api' because of global prefix
+@Controller('auth')
 export class AuthController {
   constructor(
     private authService: AuthService,

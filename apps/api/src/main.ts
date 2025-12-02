@@ -42,8 +42,5 @@ async function bootstrap() {
 
   const port = process.env.PORT || 3001;
   await app.listen(port, '0.0.0.0'); // Important for Railway
-
-  console.log(`🚀 Backend started on port ${port}`);
-  console.log('🔐 Google OAuth ready — callback: /api/auth/callback/google');
 }
 bootstrap();
