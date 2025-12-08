@@ -41,6 +41,7 @@ export class AuthService {
   }
 
   generateToken(user: DbUser): { access_token: string } {
+    const isOnboarded = user.role !== 'VICTIM' && user.phone !== null;
     const payload = {
       sub: user.id,
       email: user.email,
@@ -50,6 +51,7 @@ export class AuthService {
       image: user.image,
       lat: user.lat,
       lng: user.lng,
+      isOnboarded: isOnboarded,
     };
     return {
       access_token: this.jwtService.sign(payload, {
