@@ -37,7 +37,7 @@ export class AuthController {
     const { access_token } = this.authService.generateToken(req.user); //token generate for the user returned in auth service after google strategy ran validateGoogleUser() in auth service
 
     return res.redirect(
-      `${process.env.FRONTEND_URL || 'https://resq-disaster-platform-web.vercel.app'}/onboarding?access_token=${access_token}&redirect=/onboarding`,
+      `${process.env.FRONTEND_URL || 'https://resq-disaster-platform-web.vercel.app'}/onboarding?access_token=${access_token}&redirect=/dashboard`,
     );
   }
 

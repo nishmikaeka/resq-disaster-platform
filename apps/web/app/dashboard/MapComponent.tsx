@@ -94,31 +94,29 @@ export default function MapComponent({ user, incidents, zoom, token }: Props) {
     });
 
     // Add incident markers
-    incidents
-      .filter((inc) => inc.status === "OPEN")
-      .forEach((inc) => {
-        const el = document.createElement("div");
-        el.innerHTML = `
+    incidents.forEach((inc) => {
+      const el = document.createElement("div");
+      el.innerHTML = `
           <div class="w-4 h-4 bg-red-700/90 rounded-full animate-ping absolute inset-0"></div>
           <div class="relative w-4 h-4 bg-red-700 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-2xl">
           </div>
         `;
 
-        new mapboxgl.Marker({ element: el })
-          .setLngLat([
-            inc.lng + (Math.random() - 0.5) * 0.005,
-            inc.lat + (Math.random() - 0.5) * 0.005,
-          ]) // Mock location
-          .setPopup(
-            new mapboxgl.Popup({ offset: 30 }).setHTML(`
+      new mapboxgl.Marker({ element: el })
+        .setLngLat([
+          inc.lng + (Math.random() - 0.5) * 0.005,
+          inc.lat + (Math.random() - 0.5) * 0.005,
+        ]) // Mock location
+        .setPopup(
+          new mapboxgl.Popup({ offset: 30 }).setHTML(`
               <div class="p-3 bg-gray-900 text-white rounded-lg">
                 <h3 class="font-bold">${inc.title || "Emergency"}</h3>
                 <p class="text-xs opacity-80">Nearby • ${inc.urgency || "MEDIUM"}</p>
               </div>
             `)
-          )
-          .addTo(map.current!);
-      });
+        )
+        .addTo(map.current!);
+    });
   }, [user, incidents, zoom, updateLocation]);
 
   return (
