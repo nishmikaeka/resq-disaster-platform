@@ -1,5 +1,3 @@
-// apps/web/lib/auth.ts
-
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -14,10 +12,7 @@ export const useSaveTokenAndRedirect = () => {
     const token = params.get("access_token");
     const redirect = params.get("redirect") || "/dashboard";
 
-    console.log("Current Query Params:", params.toString());
-
     if (token) {
-      console.log("Token found! Saving and redirecting...");
       localStorage.setItem("access_token", token);
 
       // Clean the URL

@@ -15,6 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
+  //decoded payload which is creted to sign the jwt in authservice
   async validate(payload: any) {
     console.log('JWT payload:', payload);
 

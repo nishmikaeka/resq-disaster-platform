@@ -19,7 +19,7 @@ export class AuthController {
 
   // Trigger Google login
   @Get('google')
-  @UseGuards(AuthGuard('google'))
+  @UseGuards(AuthGuard('google')) //uses the settings of the googlestrategy to build the correct google authorization
   googleAuth() {
     // Passport handles redirect to Google
   }
@@ -34,10 +34,10 @@ export class AuthController {
       );
     }
 
-    const { access_token } = this.authService.generateToken(req.user);
+    const { access_token } = this.authService.generateToken(req.user); //token generate for the user returned in auth service after google strategy ran validateGoogleUser() in auth service
 
     return res.redirect(
-      `${process.env.FRONTEND_URL || 'https://resq-disaster-platform-web.vercel.app'}/onboarding?access_token=${access_token}`,
+      `${process.env.FRONTEND_URL || 'https://resq-disaster-platform-web.vercel.app'}/onboarding?access_token=${access_token}&redirect=/onboarding`,
     );
   }
 

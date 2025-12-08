@@ -17,6 +17,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     });
   }
 
+  //this validate function runs after the callback api hit the authguard('google')
   async validate(
     accessToken: string,
     refreshToken: string,
