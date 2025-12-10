@@ -1,4 +1,9 @@
 # ResQ – Real-time Emergency Response Platform for Sri Lanka
+
+ResQ is a web-based application designed with the specific purpose of aiding emergency services in their rescue efforts for lost or distressed individuals during disaster events. This innovative application allows victims to report the disaster they are facing and will help the volunteers that are nearby to locate the victims through the map box provided.
+
+The development of ResQ was undertaken by me as a solo final year project for my Bachelor's Degree in University of Sri Jayawardenapura.
+
 <div align="center">
 
 ![ResQ – Real-time Emergency Response Platform](apps/web/public/screenshot.png)
