@@ -46,6 +46,60 @@ No overwhelmed hotlines. No waiting. Just real people saving real people.
 
 Open-source and ready for the next disaster.
 
+## How to Run Locally (5 minutes)
+
+```bash
+# 1. Clone & enter the project
+git clone https://github.com/nishmikaeka/resq-disaster-platform.git
+cd resq-disaster-platform
+
+# 2. Install dependencies (Turborepo monorepo)
+npm install
+
+# 3. Set up environment variables
+# Copy example files
+cp apps/web/.env.example apps/web/.env.local
+cp apps/api/.env.example apps/api/.env
+
+# Fill these required keys (get free accounts):
+
+# ── apps/web/.env.local ─────────────────────
+NEXTAUTH_SECRET=your-super-long-random-secret
+NEXTAUTH_URL=http://localhost:3000
+NEXT_PUBLIC_BACKEND_URL=http://localhost:3001/api
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_secret
+NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
+
+# ── apps/api/.env ───────────────────────────
+DATABASE_URL=your_neon_postgres_url
+BACKEND_URL=http://localhost:3001
+JWT_SECRET=same-as-nextauth-secret-above
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_secret
+CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
+TWILIO_ACCOUNT_SID=your_sid
+TWILIO_AUTH_TOKEN=your_token
+TWILIO_PHONE_NUMBER=+1xxxxxxxxxx
+
+#start frontend-- apps/web
+npm run dev
+#start backend-- apps/api
+npm start run:dev
+
+#Services you need (all free tiers available)
+
+Neon.tech → PostgreSQL + PostGIS
+Mapbox → Maps
+Cloudinary → Image uploads
+Twilio → SMS alerts (free trial)
+Google OAuth → Google Cloud Console
+
+### Project Structure (quick note)
+![Folder Structure](apps/web/public/folderStructure.png)
+```
+
 ### Want to help?
 
 - Volunteer → sign up on the live app
