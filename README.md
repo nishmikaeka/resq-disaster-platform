@@ -95,10 +95,10 @@ Mapbox → Maps
 Cloudinary → Image uploads
 Twilio → SMS alerts (free trial)
 Google OAuth → Google Cloud Console
+```
 
 ### Project Structure (quick note)
 ![Folder Structure](apps/web/public/folderStructure.png)
-```
 
 ### Want to help?
 
