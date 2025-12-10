@@ -1,7 +1,7 @@
 # ResQ – Real-time Emergency Response Platform for Sri Lanka
 <div align="center">
 
-![ResQ – Real-time Emergency Response Platform](/screenshot.png)
+![ResQ – Real-time Emergency Response Platform](apps/web/public/screenshot.png)
 
 **When floods or landslides hit — every second counts.**  
 **ResQ connects victims with nearby volunteers in minutes.**
