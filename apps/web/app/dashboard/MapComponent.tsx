@@ -6,6 +6,7 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import type { Incident } from "../../types/types/incident";
 import { User } from "./page";
+import { useRouter } from "next/navigation";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -24,6 +25,8 @@ export default function MapComponent({ user, incidents, zoom, token }: Props) {
     text: string;
     type: "success" | "error";
   } | null>(null);
+
+  const router = useRouter();
 
   const showMessage = (text: string, type: "success" | "error" = "success") => {
     setMessage({ text, type });
@@ -101,6 +104,12 @@ export default function MapComponent({ user, incidents, zoom, token }: Props) {
           <div class="relative w-4 h-4 bg-red-700 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-2xl">
           </div>
         `;
+
+      el.addEventListener("click", () => {
+        // Navigate to the incident details page
+        // Replace this URL with your actual route (e.g., /incidents/[id])
+        router.push(`/incident/${inc.id}`);
+      });
 
       new mapboxgl.Marker({ element: el })
         .setLngLat([

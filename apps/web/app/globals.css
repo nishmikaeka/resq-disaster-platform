@@ -1,16 +1,25 @@
 @import "tailwindcss";
 
+@theme {
+  /* This links your Inter variable to the default sans font */
+  --font-sans: var(--font-inter);
+  --font-outfit: var(--font-outfit);
+}
+
+@layer base {
+  body {
+    /* Anti-aliasing for the smoothest possible text */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* Your existing scrollbar-hide logic */
 .scrollbar-hide {
-  /* 1. Rule for Firefox */
   scrollbar-width: none;
-}
-
-/* 2. Rule for WebKit Browsers (Chrome, Safari, newer Edge) */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Hide the scrollbar entirely */
-}
-
-/* 3. Ensure the content remains scrollable */
-.scrollbar-hide {
   overflow: auto;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }

@@ -257,7 +257,7 @@ function DashboardContent() {
       {/* Top Tab Bar */}
       <div className="fixed top-4 left-2 right-2 z-50">
         <div className="flex justify-between">
-          <div className="flex justify-start items-center gap-2 p-3 rounded-4xl w-full sm:w-1/3 bg-black/30 backdrop-blur-2xl">
+          <div className="flex justify-start items-center gap-2 p-3 rounded-4xl w-full sm:w-1/3 bg-black/20 backdrop-blur-sm">
             {/* Profile Picture + Logout */}
             <div className="relative" ref={profileRef}>
               <Image
@@ -281,7 +281,7 @@ function DashboardContent() {
             {/* Emergencies Tab */}
             <button
               onClick={() => router.push("/dashboard")}
-              className={`flex-1 py-2 px-4 rounded-2xl font-semibold text-xs md:text-sm transition-all ${
+              className={`flex-1 py-2 px-4 rounded-2xl cursor-pointer font-semibold text-xs md:text-sm transition-all ${
                 activeTab === "emergencies"
                   ? "bg-[#102d49] text-[#127eeb]"
                   : "bg-[#27313d] text-[#cfd3d9]"
@@ -293,7 +293,7 @@ function DashboardContent() {
             {/* My Responses / Reports Tab */}
             <button
               onClick={() => router.push("/dashboard?tab=responses")}
-              className={`flex-1 py-2 px-4 rounded-2xl font-semibold text-xs md:text-sm transition-all ${
+              className={`flex-1 py-2 px-4 rounded-2xl cursor-pointer font-semibold text-xs md:text-sm transition-all ${
                 activeTab === "responses"
                   ? "bg-[#102d49] text-[#127eeb]"
                   : "bg-[#27313d] text-[#cfd3d9]"
@@ -316,7 +316,7 @@ function DashboardContent() {
       {user.role === "VICTIM" && (
         <button
           onClick={() => router.push("/report")}
-          className="fixed bottom-16 right-4 md:right-6 w-14 h-14 bg-[#137fec] rounded-full shadow-2xl z-50 hover:scale-110 transition-all flex items-center justify-center"
+          className="fixed bottom-16 right-4 md:right-6 w-14 h-14 cursor-pointer bg-[#137fec] rounded-full shadow-2xl z-50 hover:scale-110 transition-all flex items-center justify-center"
         >
           <Plus className="w-8 h-8 text-white" />
         </button>

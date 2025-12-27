@@ -1,18 +1,15 @@
 import type { Metadata } from "next";
 // --- Replaced localFont with googleFont imports ---
-import { Montserrat, Outfit } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 
 // 1. Define Montserrat (Intended as the primary/global font)
-const montserrat = Montserrat({
+const inter = Inter({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-montserrat",
-  // You can specify weights if you don't need the whole range:
-  // weights: [400, 700],
+  variable: "--font-inter",
 });
 
-// 2. Define Outfit (For specialized use, like headings)
 const outfit = Outfit({
   subsets: ["latin"],
   display: "swap",
@@ -40,9 +37,7 @@ export default function RootLayout({
       {/* Apply the new font variables to the body tag.
         We will use Tailwind configuration to make 'montserrat' the global default.
       */}
-      <body className={`${montserrat.variable} ${outfit.variable}`}>
-        {children}
-      </body>
+      <body className={`${inter.variable} ${outfit.variable}`}>{children}</body>
     </html>
   );
 }
