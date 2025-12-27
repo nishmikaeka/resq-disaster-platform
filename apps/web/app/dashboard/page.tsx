@@ -42,6 +42,11 @@ function DashboardContent() {
   const [loadingMyResponses, setLoadingMyResponses] = useState(true);
   const [showLogOut, setShowLogout] = useState(false);
 
+  // Load More states
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
   const profileRef = useRef<HTMLDivElement>(null);
 
   const [radius, setRadius] = useState(10000);
@@ -100,38 +105,54 @@ function DashboardContent() {
       });
   }, [router]);
 
-  // Fetch nearby emergencies
-  useEffect(() => {
+  // Fetch nearby emergencies with pagination
+  // Inside DashboardContent component
+
+  const fetchNearby = async (reset = false) => {
     if (!user || !token) return;
 
-    const fetchNearby = async () => {
+    // Prevent multiple simultaneous fetches
+    if (isLoadingMore || (loadingNearby && !reset)) return;
+
+    if (reset) {
       setLoadingNearby(true);
-      try {
-        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents/nearby?lat=${user.lat}&lng=${user.lng}&radius=${radius}`;
-        const res = await fetch(url, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+      // Don't clear incidents immediately to avoid layout jump
+      setNextCursor(null);
+      setHasMore(true);
+    } else {
+      setIsLoadingMore(true);
+    }
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    try {
+      const cursorParam = !reset && nextCursor ? `&cursor=${nextCursor}` : "";
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents/nearby?lat=${user.lat}&lng=${user.lng}&radius=${radius}&limit=20${cursorParam}`;
 
-        const data = await res.json();
-        setNearbyIncidents(
-          Array.isArray(data)
-            ? data.filter(
-                (i: Incident) =>
-                  i.status === "OPEN" || i.status === "IN_PROGRESS"
-              )
-            : []
-        );
-      } catch (err) {
-        console.error(err);
-        setNearbyIncidents([]);
-      } finally {
-        setLoadingNearby(false);
-      }
-    };
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    fetchNearby();
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const result = await res.json();
+
+      setNearbyIncidents((prev) =>
+        reset ? result.data : [...prev, ...result.data]
+      );
+
+      setNextCursor(result.nextCursor);
+      setHasMore(result.hasMore);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoadingNearby(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Initial fetch when user, token, or radius changes
+  useEffect(() => {
+    if (user && token) {
+      fetchNearby(true); // Reset and load fresh data
+    }
   }, [user, token, radius]);
 
   // Fetch my responses / my reports
@@ -186,6 +207,13 @@ function DashboardContent() {
     else if (newRadius <= 30000) setZoom(9);
     else if (newRadius <= 40000) setZoom(8);
     else setZoom(7.5);
+  };
+
+  // Handle load more
+  const handleLoadMore = () => {
+    if (hasMore && !isLoadingMore && activeTab === "emergencies") {
+      fetchNearby(false);
+    }
   };
 
   const handleLogOut = () => {
@@ -286,6 +314,9 @@ function DashboardContent() {
         user={user}
         handleRadiusChange={handleRadiusChange}
         radius={radius}
+        onLoadMore={handleLoadMore}
+        hasMore={hasMore && activeTab === "emergencies"}
+        isLoadingMore={isLoadingMore}
       />
     </>
   );
