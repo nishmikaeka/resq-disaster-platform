@@ -148,7 +148,7 @@ export default function IncidentCard({ inc, activeTab }: IncidentCardProps) {
 
       <button
         onClick={() => router.push(`/incident/${inc.id}`)}
-        className={`w-full mt-4 py-2 text-sm rounded-lg font-semibold transition-all transform hover:scale-[1.02] bg-[#0e66be] hover:bg-blue-800 disabled:opacity-50`}
+        className={`w-full mt-4 py-2 text-sm rounded-lg cursor-pointer font-semibold transition-all transform hover:scale-[1.02] bg-[#0e66be] hover:bg-blue-800 disabled:opacity-50`}
         disabled={!isUserReady} // Disable button while user data is fetching
       >
         {/* Display "Loading..." until isUserReady is true, then display the correct button text */}

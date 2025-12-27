@@ -1,36 +1,100 @@
 "use client";
 import Image from "next/image";
+import { motion, Variants } from "framer-motion"; // 1. Import motion
 
 export default function Home() {
+  const containerVariants: Variants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 5 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut", // TypeScript now accepts this because of the 'Variants' type
+      },
+    },
+  };
+
   return (
     <div className="absolute inset-0 -z-10 h-full w-full flex items-start justify-center max-h-screen px-5 py-15 sm:py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]">
-      <div className="text-center max-w-md flex flex-col items-center my-auto">
-        <div className="sm:block hidden">
-          <div className="flex justify-center mb-3">
-            <Image src={"/resq.png"} alt="resq logo" width={120} height={120} />
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="text-center max-w-md flex flex-col items-center my-auto"
+      >
+        {/* Logo Section */}
+        <motion.div variants={itemVariants}>
+          <div className="sm:block hidden">
+            <div className="flex justify-center mb-3">
+              <Image
+                src={"/resq.png"}
+                alt="resq logo"
+                width={120}
+                height={120}
+                priority
+              />
+            </div>
           </div>
-        </div>
-        <div className="flex sm:hidden justify-center mb-3">
-          <Image src={"/resq.png"} alt="resq logo" width={90} height={90} />
-        </div>
+          <div className="flex sm:hidden justify-center mb-3">
+            <Image
+              src={"/resq.png"}
+              alt="resq logo"
+              width={90}
+              height={90}
+              priority
+            />
+          </div>
+        </motion.div>
 
-        <p className="text-xs sm:text-sm text-gray-500 font-medium leading-tight px-4">
+        {/* Text Description */}
+        <motion.p
+          variants={itemVariants}
+          className="text-xs sm:text-sm text-gray-400 font-medium leading-tight px-4 mb-6"
+        >
           When disaster hits, every minute counts. Report your emergency with a
           photo and exact location — volunteers in your area will see it
           instantly and come running.
-        </p>
-        <div className=" justify-center hidden sm:block sm:my-18">
-          <Image src={"/resq_bg.png"} alt="bg" width={250} height={250} />
-        </div>
-        <div className=" justify-center block sm:hidden my-10">
-          <Image src={"/resq_bg.png"} alt="bg" width={200} height={200} />
-        </div>
+        </motion.p>
 
-        <button
+        <motion.div variants={itemVariants}>
+          <div className="justify-center hidden sm:block sm:my-12">
+            <Image
+              src={"/resq_bg_converted.avif"}
+              alt="bg"
+              width={250}
+              height={250}
+            />
+          </div>
+          <div className="justify-center block sm:hidden my-8">
+            <Image
+              src={"/resq_bg_converted.avif"}
+              alt="bg"
+              width={200}
+              height={200}
+            />
+          </div>
+        </motion.div>
+
+        {/* Google Login Button */}
+        <motion.button
+          variants={itemVariants}
+          whileHover={{ scale: 1.02, backgroundColor: "rgba(0,0,0,0.5)" }}
+          whileTap={{ scale: 0.98 }}
           onClick={() =>
             (window.location.href = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/google`)
           }
-          className="w-4/5 bg-black/30 border border-amber-50 cursor-pointer hover:bg-black/50 text-white font-medium text-sm sm:text-lg py-2 px-2 rounded-2xl shadow-2xl flex items-center justify-center gap-3 transition"
+          className="w-4/5 bg-black/30 border border-white/20 cursor-pointer text-white font-medium text-sm sm:text-lg py-3 px-4 rounded-2xl shadow-2xl flex items-center justify-center gap-3 transition"
         >
           <svg className="w-6 h-6" viewBox="0 0 24 24">
             <path
@@ -51,8 +115,8 @@ export default function Home() {
             />
           </svg>
           Continue with Google
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     </div>
   );
 }
