@@ -27,18 +27,6 @@ import { IncidentWithGeo } from 'src/types/authInterfaces';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@prisma/client';
 
-interface PaginatedIncidents {
-  data: IncidentWithGeo[];
-  pagination: {
-    page: number;
-    limit: number;
-    total: number;
-    totalPages: number;
-    hasNext: boolean;
-    hasPrev: boolean;
-  };
-}
-
 @Controller('incidents')
 export class IncidentsController {
   private twilioClient: any;
@@ -187,6 +175,23 @@ export class IncidentsController {
       console.error('Nearby error:', error);
       throw error;
     }
+  }
+
+  @Get('map-pins')
+  async getMapPins(
+    @Query('lat', ParseFloatPipe) lat: number,
+    @Query('lng', ParseFloatPipe) lng: number,
+    @Query('radius', ParseIntPipe) radius: number,
+  ) {
+    // Same PostGIS logic as 'nearby', but NO LIMIT and NO JOINS
+    return this.prismaService.$queryRaw`
+    SELECT id, urgency, status,
+           ST_Y(location::geometry) AS lat, 
+           ST_X(location::geometry) AS lng
+    FROM incidents
+    WHERE status IN ('OPEN', 'IN_PROGRESS')
+      AND ST_DWithin(location::geography, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radius})
+  `;
   }
 
   @Get('my-responses')

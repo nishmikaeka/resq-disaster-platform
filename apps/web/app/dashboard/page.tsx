@@ -53,6 +53,8 @@ function DashboardContent() {
   const [zoom, setZoom] = useState<number>(13);
   const [showDragTip, setShowDragTip] = useState(true);
 
+  const [mapIncidents, setMapIncidents] = useState<Incident[]>([]);
+
   // Determine active tab from URL
   const activeTab =
     (searchParams.get("tab") as "responses" | null) === "responses"
@@ -72,6 +74,20 @@ function DashboardContent() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Effect to fetch EVERYTHING for the map whenever radius/location changes
+  useEffect(() => {
+    if (user && token) {
+      fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents/map-pins?lat=${user.lat}&lng=${user.lng}&radius=${radius}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+        .then((res) => res.json())
+        .then((data) => setMapIncidents(data));
+    }
+  }, [user?.lat, user?.lng, radius]); // Only triggers on major changes, not scrolling
 
   // Fetch user profile
   useEffect(() => {
@@ -236,7 +252,7 @@ function DashboardContent() {
 
   return (
     <>
-      <Map user={user} incidents={openIncidents} zoom={zoom} token={token!} />
+      <Map user={user} incidents={mapIncidents} zoom={zoom} token={token!} />
 
       {/* Top Tab Bar */}
       <div className="fixed top-4 left-2 right-2 z-50">
@@ -271,7 +287,7 @@ function DashboardContent() {
                   : "bg-[#27313d] text-[#cfd3d9]"
               }`}
             >
-              Emergencies ({nearbyIncidents.length})
+              Emergencies ({mapIncidents.length})
             </button>
 
             {/* My Responses / Reports Tab */}
