@@ -14,3 +14,13 @@
 .scrollbar-hide {
   overflow: auto;
 }
+@layer base {
+  body {
+    @apply antialiased;
+    /* Webkit-specific smoothing for Chrome/Safari/Edge */
+    -webkit-font-smoothing: antialiased;
+    /* Firefox-specific smoothing */
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}

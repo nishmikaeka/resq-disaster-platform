@@ -100,7 +100,7 @@ export default function IncidentList({
             </p>
           </div>
         ) : (
-          <div className="space-y-3 max-h-72 md:max-h-96 overflow-y-auto pb-10 scrollbar-hide">
+          <div className="space-y-3 max-h-72 md:max-h-96 overflow-y-auto pb-10 scrollbar-hide scroll-smooth">
             {openIncidents.map((inc) => (
               <IncidentCard
                 key={inc.id}
