@@ -257,7 +257,7 @@ function DashboardContent() {
       {/* Top Tab Bar */}
       <div className="fixed top-4 left-2 right-2 z-50">
         <div className="flex justify-between">
-          <div className="flex justify-start items-center gap-2 p-3 rounded-4xl w-full sm:w-1/3 bg-black/30 backdrop-blur-2xl">
+          <div className="flex justify-start items-center gap-2 p-3 rounded-4xl w-full sm:w-1/3 bg-black/20 backdrop-blur-sm">
             {/* Profile Picture + Logout */}
             <div className="relative" ref={profileRef}>
               <Image

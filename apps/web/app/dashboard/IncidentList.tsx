@@ -53,7 +53,7 @@ export default function IncidentList({
   }, [hasMore, isLoadingMore, isLoading, onLoadMore]);
 
   return (
-    <div className="fixed inset-x-0 bottom-0 mx-auto max-h-1/2 rounded-t-3xl p-4 md:p-6 z-40 text-white pt-3 md:pt-5 bg-black/80 backdrop-blur-md border-t border-white/10">
+    <div className="fixed inset-x-0 bottom-0 mx-auto max-h-1/2 rounded-t-3xl p-4 md:p-6 z-40 text-white pt-3 md:pt-5 bg-black/50 backdrop-blur-md border-t border-white/10">
       <div className="max-w-3xl mx-auto py-3 px-0 sm:px-10">
         <div className="flex justify-between items-center mb-5">
           <h2 className="text-lg md:text-xl text-gray-200 font-semibold">

@@ -177,6 +177,7 @@ export class IncidentsController {
     }
   }
 
+  //get map pins to locate them
   @Get('map-pins')
   async getMapPins(
     @Query('lat', ParseFloatPipe) lat: number,
