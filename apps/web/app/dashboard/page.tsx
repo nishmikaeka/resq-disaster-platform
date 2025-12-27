@@ -42,11 +42,18 @@ function DashboardContent() {
   const [loadingMyResponses, setLoadingMyResponses] = useState(true);
   const [showLogOut, setShowLogout] = useState(false);
 
+  // Load More states
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
   const profileRef = useRef<HTMLDivElement>(null);
 
   const [radius, setRadius] = useState(10000);
   const [zoom, setZoom] = useState<number>(13);
   const [showDragTip, setShowDragTip] = useState(true);
+
+  const [mapIncidents, setMapIncidents] = useState<Incident[]>([]);
 
   // Determine active tab from URL
   const activeTab =
@@ -67,6 +74,20 @@ function DashboardContent() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Effect to fetch EVERYTHING for the map whenever radius/location changes
+  useEffect(() => {
+    if (user && token) {
+      fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents/map-pins?lat=${user.lat}&lng=${user.lng}&radius=${radius}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      )
+        .then((res) => res.json())
+        .then((data) => setMapIncidents(data));
+    }
+  }, [user?.lat, user?.lng, radius]); // Only triggers on major changes, not scrolling
 
   // Fetch user profile
   useEffect(() => {
@@ -100,38 +121,54 @@ function DashboardContent() {
       });
   }, [router]);
 
-  // Fetch nearby emergencies
-  useEffect(() => {
+  // Fetch nearby emergencies with pagination
+  // Inside DashboardContent component
+
+  const fetchNearby = async (reset = false) => {
     if (!user || !token) return;
 
-    const fetchNearby = async () => {
+    // Prevent multiple simultaneous fetches
+    if (isLoadingMore || (loadingNearby && !reset)) return;
+
+    if (reset) {
       setLoadingNearby(true);
-      try {
-        const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents/nearby?lat=${user.lat}&lng=${user.lng}&radius=${radius}`;
-        const res = await fetch(url, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+      // Don't clear incidents immediately to avoid layout jump
+      setNextCursor(null);
+      setHasMore(true);
+    } else {
+      setIsLoadingMore(true);
+    }
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    try {
+      const cursorParam = !reset && nextCursor ? `&cursor=${nextCursor}` : "";
+      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents/nearby?lat=${user.lat}&lng=${user.lng}&radius=${radius}&limit=20${cursorParam}`;
 
-        const data = await res.json();
-        setNearbyIncidents(
-          Array.isArray(data)
-            ? data.filter(
-                (i: Incident) =>
-                  i.status === "OPEN" || i.status === "IN_PROGRESS"
-              )
-            : []
-        );
-      } catch (err) {
-        console.error(err);
-        setNearbyIncidents([]);
-      } finally {
-        setLoadingNearby(false);
-      }
-    };
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    fetchNearby();
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const result = await res.json();
+
+      setNearbyIncidents((prev) =>
+        reset ? result.data : [...prev, ...result.data]
+      );
+
+      setNextCursor(result.nextCursor);
+      setHasMore(result.hasMore);
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoadingNearby(false);
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Initial fetch when user, token, or radius changes
+  useEffect(() => {
+    if (user && token) {
+      fetchNearby(true); // Reset and load fresh data
+    }
   }, [user, token, radius]);
 
   // Fetch my responses / my reports
@@ -188,6 +225,13 @@ function DashboardContent() {
     else setZoom(7.5);
   };
 
+  // Handle load more
+  const handleLoadMore = () => {
+    if (hasMore && !isLoadingMore && activeTab === "emergencies") {
+      fetchNearby(false);
+    }
+  };
+
   const handleLogOut = () => {
     localStorage.removeItem("access_token");
     router.replace("/");
@@ -208,7 +252,7 @@ function DashboardContent() {
 
   return (
     <>
-      <Map user={user} incidents={openIncidents} zoom={zoom} token={token!} />
+      <Map user={user} incidents={mapIncidents} zoom={zoom} token={token!} />
 
       {/* Top Tab Bar */}
       <div className="fixed top-4 left-2 right-2 z-50">
@@ -243,7 +287,7 @@ function DashboardContent() {
                   : "bg-[#27313d] text-[#cfd3d9]"
               }`}
             >
-              Emergencies ({nearbyIncidents.length})
+              Emergencies ({mapIncidents.length})
             </button>
 
             {/* My Responses / Reports Tab */}
@@ -286,6 +330,9 @@ function DashboardContent() {
         user={user}
         handleRadiusChange={handleRadiusChange}
         radius={radius}
+        onLoadMore={handleLoadMore}
+        hasMore={hasMore && activeTab === "emergencies"}
+        isLoadingMore={isLoadingMore}
       />
     </>
   );

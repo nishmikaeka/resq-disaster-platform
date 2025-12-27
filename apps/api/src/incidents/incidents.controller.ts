@@ -25,6 +25,7 @@ import type { Express } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { IncidentWithGeo } from 'src/types/authInterfaces';
 import { ConfigService } from '@nestjs/config';
+import { Prisma } from '@prisma/client';
 
 @Controller('incidents')
 export class IncidentsController {
@@ -81,9 +82,21 @@ export class IncidentsController {
     @Query('lat', ParseFloatPipe) lat: number,
     @Query('lng', ParseFloatPipe) lng: number,
     @Query('radius', new DefaultValuePipe(10000), ParseIntPipe) radius: number,
-  ): Promise<IncidentWithGeo[]> {
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('cursor') cursor?: string, // ID of last incident from previous load
+  ): Promise<{
+    data: IncidentWithGeo[];
+    nextCursor: string | null;
+    hasMore: boolean;
+  }> {
     try {
+      const validLimit = Math.min(Math.max(1, limit), 50); // Max 50 per load
+
+      // Fetch limit + 1 to check if there are more results
       const results = await this.prismaService.$queryRaw<IncidentWithGeo[]>`
+      WITH search_point AS (
+        SELECT ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography AS geog
+      )
       SELECT 
         i.id, 
         i.title, 
@@ -92,54 +105,95 @@ export class IncidentsController {
         i.status,
         i.phone,
         i."createdAt",
-        ST_AsText(location) as location,
-        -- PostGIS functions for coordinates and distance:
         ST_Y(i.location::geometry) AS lat,
         ST_X(i.location::geometry) AS lng,
-        ST_Distance(
-          i.location::geography, 
-          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography
-        ) AS distance_meters,
+        ST_Distance(i.location::geography, sp.geog) AS distance_meters,
         
-        (
-            SELECT row_to_json(u.*)
-            FROM users u
-            WHERE u.id = i."userId"
+        json_build_object(
+          'id', u.id,
+          'email', u.email,
+          'name', u.name,
+          'role', u.role,
+          'image', u.image,
+          'phone', u.phone,
+          'lat', u.lat,
+          'lng', u.lng
         ) AS "user",
-                    
-        (
-          SELECT row_to_json(v.*)
-          FROM users v
-          WHERE v.id = i."volunteerId"
+        
+        json_build_object(
+          'id', v.id,
+          'email', v.email,
+          'name', v.name,
+          'role', v.role,
+          'image', v.image,
+          'phone', v.phone
         ) AS "volunteer"
         
       FROM incidents i 
+      CROSS JOIN search_point sp
+      INNER JOIN users u ON u.id = i."userId"
+      LEFT JOIN users v ON v.id = i."volunteerId"
       
       WHERE 
-        ST_DWithin(
-          i.location::geography, 
-          ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, 
-          ${radius}
-        )
-        AND i.status IN ('OPEN','IN_PROGRESS')
-      ORDER BY i."createdAt" DESC
-      LIMIT 50
+        i.status IN ('OPEN', 'IN_PROGRESS')
+        AND ST_DWithin(i.location::geography, sp.geog, ${radius})
+        ${
+          cursor
+            ? Prisma.sql`AND (
+          ST_Distance(i.location::geography, sp.geog), i.id
+        ) > (
+          (SELECT ST_Distance(location::geography, sp.geog) FROM incidents WHERE id = ${cursor}),
+          ${cursor}
+        )`
+            : Prisma.empty
+        }
+        
+      ORDER BY distance_meters ASC, i.id ASC
+      LIMIT ${validLimit + 1}
     `;
 
-      return Array.isArray(results)
-        ? results.map((inc) => ({
-            ...inc,
-            // Ensure coordinates are cast to numbers if Prisma doesn't do it automatically
-            lat: parseFloat(inc.lat as any),
-            lng: parseFloat(inc.lng as any),
-            distance: Math.round(inc.distance_meters as number), // now real distance!
-          }))
-        : [];
+      // Check if there are more results
+      const hasMore = results.length > validLimit;
+
+      // Return only the requested number of items
+      const items = results.slice(0, validLimit);
+
+      const data = items.map((inc) => ({
+        ...inc,
+        lat: Number(inc.lat),
+        lng: Number(inc.lng),
+        distance: Math.round(Number(inc.distance_meters)),
+      }));
+
+      return {
+        data,
+        nextCursor:
+          hasMore && items.length > 0 ? items[items.length - 1].id : null,
+        hasMore,
+      };
     } catch (error) {
       console.error('Nearby error:', error);
-      return [];
+      throw error;
     }
   }
+
+  @Get('map-pins')
+  async getMapPins(
+    @Query('lat', ParseFloatPipe) lat: number,
+    @Query('lng', ParseFloatPipe) lng: number,
+    @Query('radius', ParseIntPipe) radius: number,
+  ) {
+    // Same PostGIS logic as 'nearby', but NO LIMIT and NO JOINS
+    return this.prismaService.$queryRaw`
+    SELECT id, urgency, status,
+           ST_Y(location::geometry) AS lat, 
+           ST_X(location::geometry) AS lng
+    FROM incidents
+    WHERE status IN ('OPEN', 'IN_PROGRESS')
+      AND ST_DWithin(location::geography, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)::geography, ${radius})
+  `;
+  }
+
   @Get('my-responses')
   @UseGuards(JwtGuard)
   async getMyResponses(@Req() req: AuthRequest): Promise<IncidentWithGeo[]> {
