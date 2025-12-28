@@ -17,10 +17,10 @@ COPY prisma ./prisma
 # Install dependencies using npm
 RUN npm ci
 
-# Set DATABASE_URL for Prisma generation
-ENV DATABASE_URL="postgresql://postgres:postgres@localhost:5432/resq_db?schema=public"
+# Set a placeholder DATABASE_URL for Prisma generation
+ENV DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder"
 
-# Generate Prisma Client (pointing to root prisma folder)
+# Generate Prisma Client
 WORKDIR /app
 RUN npx prisma generate --schema=./prisma/schema.prisma
 
@@ -45,6 +45,12 @@ COPY --from=builder /app/prisma ./prisma
 # Generate Prisma Client again in production
 RUN npx prisma generate --schema=./prisma/schema.prisma
 
-EXPOSE 3000
+# Expose the port your app runs on
+EXPOSE 8000
 
-CMD ["node", "dist/main"]
+# Create a startup script
+RUN echo '#!/bin/sh\n\
+npx prisma migrate deploy --schema=./prisma/schema.prisma\n\
+node dist/main' > /app/start.sh && chmod +x /app/start.sh
+
+CMD ["sh", "-c", "npx prisma migrate deploy --schema=./prisma/schema.prisma && node dist/main"]
