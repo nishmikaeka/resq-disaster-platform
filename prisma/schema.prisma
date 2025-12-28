@@ -1,3 +1,4 @@
+//create this file inside api folder if you are reusing this project
 generator client {
   provider = "prisma-client-js"
 }
