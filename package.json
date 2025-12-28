@@ -4,15 +4,20 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-     "start:prod": "turbo run start:prod --filter=api",
+    "start:prod": "turbo run start:prod --filter=api",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "turbo run check-types"
+    "check-types": "turbo run check-types",
+    "prisma:generate": "prisma generate --schema=./prisma/schema.prisma",
+    "prisma:migrate:dev": "prisma migrate dev --schema=./prisma/schema.prisma",
+    "prisma:migrate:deploy": "prisma migrate deploy --schema=./prisma/schema.prisma",
+    "prisma:studio": "prisma studio --schema=./prisma/schema.prisma"
   },
   "devDependencies": {
     "@types/express": "^5.0.5",
     "@types/express-session": "^1.18.2",
     "@types/multer": "^2.0.0",
+    "@types/pg": "^8.16.0",
     "prettier": "^3.6.2",
     "turbo": "^2.6.1",
     "typescript": "5.9.2"
@@ -26,8 +31,10 @@
     "packages/*"
   ],
   "dependencies": {
+    "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^6.19.0",
     "express-session": "^1.18.2",
+    "pg": "^8.16.3",
     "prisma": "^6.19.0"
   }
 }
