@@ -50,7 +50,7 @@ async function bootstrap() {
     maxAge: 3600, // Cache preflight requests for 1 hour
   });
 
-  const port = process.env.PORT || 3001;
+  const port = process.env.PORT || 8080;
   await app.listen(port, '0.0.0.0');
 }
 bootstrap();
