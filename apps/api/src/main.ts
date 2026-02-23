@@ -8,11 +8,15 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
+  const sessionSecret = process.env.SESSION_SECRET;
+  if (!sessionSecret) {
+    throw new Error('SESSION_SECRET environment variable is not set');
+  }
+
   // Session configuration
   app.use(
     session({
-      secret:
-        process.env.SESSION_SECRET || 'resq-super-secret-2025-change-in-prod',
+      secret: sessionSecret,
       resave: false,
       saveUninitialized: false,
       cookie: {

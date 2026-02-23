@@ -6,9 +6,9 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "prebuild": "prisma generate --schema=../../prisma/schema.prisma",
+    "prebuild": "cd ../../packages/database && npm run generate",
     "build": "nest build",
-    "prestart:prod": "prisma generate --schema=../../prisma/schema.prisma",
+    "prestart:prod": "cd ../../packages/database && npm run generate",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -38,7 +38,8 @@
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "twilio": "^5.10.6"
+    "twilio": "^5.10.6",
+    "@repo/database": "*"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -46,7 +47,6 @@
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
-    "@prisma/client": "^7.0.0",
     "@types/express": "^5.0.0",
     "@types/express-session": "^1.18.2",
     "@types/jest": "^30.0.0",
@@ -58,9 +58,6 @@
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
     "globals": "^16.0.0",
-    "jest": "^30.0.0",
-    "prettier": "^3.4.2",
-    "prisma": "^6.19.0",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",

@@ -67,7 +67,7 @@ export default function IncidentCard({ inc, activeTab }: IncidentCardProps) {
       case "HIGH":
         return "bg-red-400 px-2 text-red-800 border border-red-700";
       case "MEDIUM":
-        return "bg-orange-400 px-3 text-orange-800 border border-orange-700";
+        return "bg-orange-400 px-2 text-orange-800 border border-orange-700";
       default:
         return "bg-green-400 px-2 text-green-800 border border-green-800";
     }
@@ -93,9 +93,8 @@ export default function IncidentCard({ inc, activeTab }: IncidentCardProps) {
     //incident card loading the details of each incident that is fetched nearby
     <div
       key={inc.id}
-      className={`bg-[#131d27] backdrop-blur-xl rounded-xl p-4 md:p-6 border ${
-        activeTab === "responses" ? "border-gray-300/10" : "border-white/20"
-      }`}
+      className={`bg-[#131d27] backdrop-blur-xl rounded-xl p-4 md:p-6 border ${activeTab === "responses" ? "border-gray-300/10" : "border-white/20"
+        }`}
     >
       <div className="flex justify-between items-start mb-3">
         <div>
@@ -126,22 +125,22 @@ export default function IncidentCard({ inc, activeTab }: IncidentCardProps) {
               </p>
             )}
         </div>
-        <div className="space-y-1 text-center">
+        <div className="space-y-1 flex flex-col items-end shrink-0">
           {/* Urgency Tag */}
           <div
-            className={`py-1 text-[10px] rounded-2xl font-bold self-center ${getUrgencyClasses(
+            className={`py-1 px-2 text-[9px] rounded-2xl font-bold text-center min-w-[85px] border ${getUrgencyClasses(
               inc.urgency
             )}`}
           >
-            URGENCY: {inc.urgency}
+            {inc.urgency}
           </div>
           {/* Status Tag */}
           <div
-            className={`px-2 py-1 text-[10px] rounded-2xl font-bold self-center ${getStatusClasses(
+            className={`px-2 py-1 text-[9px] rounded-2xl font-bold text-center min-w-[85px] border ${getStatusClasses(
               inc.status
             )}`}
           >
-            STATUS: {inc.status}
+            {inc.status.replace("_", " ")}
           </div>
         </div>
       </div>

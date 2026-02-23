@@ -26,7 +26,6 @@
   ],
   "dependencies": {
     "@prisma/client": "^6.19.0",
-    "express-session": "^1.18.2",
-    "prisma": "^6.19.0"
+    "express-session": "^1.18.2"
   }
 }
