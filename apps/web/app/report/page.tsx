@@ -5,6 +5,8 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { ArrowLeft } from "lucide-react";
+import api from "../../lib/api";
+import toast from "react-hot-toast";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -163,7 +165,7 @@ const ReportPage = () => {
     const file = e.target.files?.[0];
     if (file) {
       if (!file.type.startsWith("image/")) {
-        alert("Please select a valid image file (JPG, PNG, GIF, WEBP).");
+        toast.error("Please select a valid image file (JPG, PNG, GIF, WEBP).");
         setImageFile(null);
         setImagePreviewUrl(null);
         return;
@@ -185,7 +187,7 @@ const ReportPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!location) {
-      alert("Location data is unavailable. Cannot submit report.");
+      toast.error("Location data is unavailable. Cannot submit report.");
       return;
     }
 
@@ -206,39 +208,16 @@ const ReportPage = () => {
       formData.append("file", imageFile);
     }
 
-    const token = localStorage.getItem("access_token");
-    if (!token) {
-      alert("Authentication required.");
-      setIsSubmitting(false);
-      router.replace("/");
-      return;
-    }
-
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: formData,
-        }
-      );
+      await api.post("/incidents", formData);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        alert(
-          `Failed to report incident: ${errorData.message || response.statusText}`
-        );
-        return;
-      }
-      alert("Incident reported successfully! Help is on the way.");
+      toast.success("Incident reported successfully! Help is on the way.");
       console.log(location);
       router.push("/dashboard");
-    } catch (err) {
+    } catch (err: any) {
       console.error("Submission error:", err);
-      alert("An unexpected error occurred during submission.");
+      const message = err.response?.data?.message || "An unexpected error occurred during submission.";
+      toast.error(`Failed to report incident: ${message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -360,11 +339,10 @@ const ReportPage = () => {
                   disabled={isSubmitting}
                 />
                 <div
-                  className={`p-3 rounded-lg border-2 border-dashed transition-all text-center ${
-                    imageFile
+                  className={`p-3 rounded-lg border-2 border-dashed transition-all text-center ${imageFile
                       ? "border-green-400/50 bg-green-400/5"
                       : "border-gray-700/50 hover:border-blue-500/50 bg-gray-800/30"
-                  }`}
+                    }`}
                 >
                   {imageFile ? (
                     <div className="flex items-center justify-center gap-2">
@@ -419,11 +397,10 @@ const ReportPage = () => {
             <button
               type="submit"
               disabled={!location || !title || isSubmitting}
-              className={`w-full py-3 rounded-xl font-semibold text-base transition-all ${
-                location && title && !isSubmitting
+              className={`w-full py-3 rounded-xl font-semibold text-base transition-all ${location && title && !isSubmitting
                   ? "bg-[#0e66be] hover:bg-blue-800 shadow-lg  hover:scale-[1.02] text-white"
                   : "bg-gray-700/50 text-gray-500 cursor-not-allowed"
-              }`}
+                }`}
             >
               {isSubmitting ? "Submitting Report..." : "Report Emergency Now"}
             </button>

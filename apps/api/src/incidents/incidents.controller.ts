@@ -387,18 +387,24 @@ export class IncidentsController {
   async accept(@Param('id') id: string, @Req() req: AuthRequest) {
     const incident = await this.prismaService.incident.findUnique({
       where: { id },
-      include: { user: true, volunteer: true },
     });
 
     if (!incident) throw new NotFoundException('Incident Not Found');
-    if (incident.status !== 'OPEN')
-      throw new BadRequestException('Already taken');
 
-    const updatedIncident = await this.prismaService.incident.update({
-      where: { id },
+    // Atomic claim prevents two volunteers from accepting at the same time.
+    const claimed = await this.prismaService.incident.updateMany({
+      where: { id, status: 'OPEN' },
       data: { status: 'IN_PROGRESS', volunteerId: req.user.id },
+    });
+    if (claimed.count === 0) {
+      throw new BadRequestException('Already taken');
+    }
+
+    const updatedIncident = await this.prismaService.incident.findUnique({
+      where: { id },
       include: { user: true, volunteer: true },
     });
+    if (!updatedIncident) throw new NotFoundException('Incident Not Found');
 
     // Send sms to victim notifying about the volunteer
     if (this.twilioClient && updatedIncident.phone) {

@@ -1,45 +1,48 @@
-// lib/auth.js (or wherever your hook is located)
-
-import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { jwtDecode } from "jwt-decode"; // Import the library
+import api from "./api";
 
 export const useSaveTokenAndRedirect = () => {
-  const router = useRouter();
-
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("access_token");
-    // This 'redirect' parameter is what the BACKEND tells the frontend to use
-    // as the final destination *after* the token is saved.
-    const finalRedirect = params.get("redirect") || "/dashboard";
+    const checkAuthAndRedirect = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const finalRedirect = params.get("redirect") || "/dashboard";
 
-    if (token) {
-      localStorage.setItem("access_token", token); // Clean the URL immediately to hide the token
-
-      const cleanUrl = window.location.pathname;
-      window.history.replaceState({}, "", cleanUrl);
-
-      let destination = finalRedirect;
+      // Clean the URL immediately
+      if (window.location.search) {
+        window.history.replaceState({}, "", window.location.pathname);
+      }
 
       try {
-        // 1. DECODE THE TOKEN
-        const payload = jwtDecode<{ isOnboarded: boolean }>(token);
+        // Verify current session using cookies
+        const response = await api.get("/auth/me");
+        const user = response.data;
 
-        // 2. CONDITIONAL CHECK: If user is ALREADY onboarded,
-        // force the destination to the dashboard, overriding the URL parameter.
-        if (payload.isOnboarded) {
-          console.log("User already onboarded. Redirecting to dashboard.");
-          destination = "/dashboard";
+        if (user) {
+          // Consider a user onboarded once required location is saved.
+          // This matches dashboard gating logic and supports both victims and volunteers.
+          const hasLocation = user.lat !== null && user.lng !== null;
+          const isOnboarded = hasLocation;
+
+          if (isOnboarded) {
+            console.log("User already onboarded. Redirecting to dashboard.");
+            window.location.href = "/dashboard";
+          } else {
+            console.log("User needs onboarding.");
+            // Stay on /onboarding if we are already there, otherwise redirect
+            if (window.location.pathname !== "/onboarding") {
+              window.location.href = "/onboarding";
+            }
+          }
         }
       } catch (e) {
-        console.error("Failed to decode token:", e);
-        // If token decode fails, we still redirect to the original path as a fallback
-      } // Force full reload to ensure the new token is read by the app context
+        console.error("Auth check failed:", e);
+        // Fallback for failed auth - redirect to login
+        // window.location.href = "/login";
+      }
+    };
 
-      window.location.href = destination;
-    }
-  }, [router]);
+    checkAuthAndRedirect();
+  }, []);
 };

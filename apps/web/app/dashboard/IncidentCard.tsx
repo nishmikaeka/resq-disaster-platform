@@ -2,60 +2,28 @@ import { useRouter } from "next/navigation";
 import { MapPin, Clock, UserRound, HandHelping } from "lucide-react";
 import type { Incident } from "../../types/types/incident";
 import { TimeAgo } from "../utils/TimeAgo";
-import { useEffect, useState } from "react";
-import { User } from "./page";
 
 // Props structure for the IncidentCard
 interface IncidentCardProps {
   inc: Incident;
   activeTab: "emergencies" | "responses";
   userRole: "VICTIM" | "VOLUNTEER";
+  currentUserId: string;
 }
 
 /**
  * Renders a single, detailed incident card.
  * @param {IncidentCardProps} props - Incident data and context (activeTab, userRole).
  */
-export default function IncidentCard({ inc, activeTab }: IncidentCardProps) {
+export default function IncidentCard({
+  inc,
+  activeTab,
+  currentUserId,
+}: IncidentCardProps) {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [isUserReady, setIsUserReady] = useState(false);
-
-  // fetch the api/auth/me to change the button state if the volunteer accepted incident is shown in emergensies tab
-  useEffect(() => {
-    const storedToken = localStorage.getItem("access_token");
-    if (!storedToken) {
-      router.replace("/");
-      setIsUserReady(true); // Treat as ready if unauthenticated
-      return;
-    }
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${storedToken}`,
-        "Cache-Control": "no-cache",
-      },
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error("Unauthorized");
-        return r.json();
-      })
-      .then((data) => {
-        if (!data.lat || !data.lng) {
-          router.replace("/onboarding");
-          return;
-        }
-        setUser(data as User);
-        setIsUserReady(true); // Set ready on success
-      })
-      .catch(() => {
-        localStorage.removeItem("access_token");
-        router.replace("/");
-        setIsUserReady(true); // Set ready on failure
-      });
-  }, [router]);
 
   const getButtonText = () => {
-    if (user?.id === inc.userId) {
+    if (currentUserId === inc.userId) {
       return "View Report";
     }
     return "View Details";
@@ -148,10 +116,8 @@ export default function IncidentCard({ inc, activeTab }: IncidentCardProps) {
       <button
         onClick={() => router.push(`/incident/${inc.id}`)}
         className={`w-full mt-4 py-2 text-sm rounded-lg cursor-pointer font-semibold transition-all transform hover:scale-[1.02] bg-[#0e66be] hover:bg-blue-800 disabled:opacity-50`}
-        disabled={!isUserReady} // Disable button while user data is fetching
       >
-        {/* Display "Loading..." until isUserReady is true, then display the correct button text */}
-        {isUserReady ? getButtonText() : "Loading..."}
+        {getButtonText()}
       </button>
     </div>
   );

@@ -15,9 +15,10 @@ model User {
   role        Role       @default(VICTIM)
   image       String?
   phone       String?   
-  lat       Float?
-  lng       Float?
-  createdAt   DateTime   @default(now())
+  lat              Float?
+  lng              Float?
+  refreshTokenHash String?
+  createdAt        DateTime   @default(now())
 
   // Relations
   incidents          Incident[]                   // victim's reports

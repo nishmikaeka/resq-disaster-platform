@@ -107,6 +107,7 @@ export default function IncidentList({
                 inc={inc}
                 activeTab={activeTab}
                 userRole={user.role}
+                currentUserId={user.id}
               />
             ))}
 

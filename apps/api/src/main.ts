@@ -1,14 +1,36 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
 import passport from 'passport';
 import session from 'express-session';
+import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import { GlobalExceptionFilter } from './common/filters/global-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api');
 
-  const sessionSecret = process.env.SESSION_SECRET;
+  // --- Security Headers ---
+  app.use(helmet());
+
+  // --- Cookie Parser (required for HttpOnly cookie auth) ---
+  app.use(cookieParser());
+
+  // --- Global Validation Pipe ---
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // strip unknown properties
+      forbidNonWhitelisted: true, // throw on unknown properties
+      transform: true, // auto-transform payloads to DTO instances
+    }),
+  );
+
+  // --- Global Exception Filter ---
+  app.useGlobalFilters(new GlobalExceptionFilter());
+
+  const sessionSecret = process.env.SESSION_SECRET!;
   if (!sessionSecret) {
     throw new Error('SESSION_SECRET environment variable is not set');
   }
@@ -32,7 +54,7 @@ async function bootstrap() {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // CORS configuration - UPDATED
+  // CORS configuration
   app.enableCors({
     origin: [
       'http://localhost:3000',
@@ -51,7 +73,7 @@ async function bootstrap() {
       'X-CSRF-Token',
     ],
     exposedHeaders: ['Set-Cookie'],
-    maxAge: 3600, // Cache preflight requests for 1 hour
+    maxAge: 3600,
   });
 
   const port = process.env.PORT || 3001;

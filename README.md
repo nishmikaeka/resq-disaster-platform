@@ -1,116 +1,194 @@
-# ResQ – Real-time Emergency Response Platform for Sri Lanka
+# ResQ
 
-ResQ is a web-based application designed with the specific purpose of aiding emergency services in their rescue efforts for lost or distressed individuals during disaster events. This innovative application allows victims to report the disaster they are facing and will help the volunteers that are nearby to locate the victims through the map box provided.
+ResQ is a disaster-response platform built for Sri Lanka to connect victims and nearby volunteers quickly during floods, landslides, and other emergencies.
 
-The development of ResQ was undertaken by me as a solo final year project for my Bachelor's Degree in University of Sri Jayawardenapura.
-
-<div align="center">
+Developed as a solo final-year project at the University of Sri Jayawardenapura.
 
 ![ResQ – Real-time Emergency Response Platform](apps/web/public/screenshot.png)
 
-**When floods or landslides hit — every second counts.**  
-**ResQ connects victims with nearby volunteers in minutes.**
+[![Live App](https://img.shields.io/badge/live-vercel-000000.svg)](https://resq-disaster-platform-web.vercel.app)
+[![GitHub Repo](https://img.shields.io/github/stars/nishmikaeka/resq-disaster-platform?style=social)](https://github.com/nishmikaeka/resq-disaster-platform)
 
-[![Vercel](https://img.shields.io/badge/live-vercel-000000.svg?style=for-the-badge&logo=vercel)](https://resq-disaster-platform-web.vercel.app)
-[![GitHub](https://img.shields.io/github/stars/nishmikaeka/resq-disaster-platform?style=social)](https://github.com/nishmikaeka/resq-disaster-platform)
+## Table of Contents
 
-</div>
+- [Motivation](#motivation)
+- [What Problem It Solves](#what-problem-it-solves)
+- [How It Works](#how-it-works)
+- [Key Features](#key-features)
+- [Tech Stack](#tech-stack)
+- [Architecture Overview](#architecture-overview)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Run and Test](#run-and-test)
+- [Production Notes](#production-notes)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [Credits](#credits)
+- [License](#license)
 
-### How it works (4 taps)
+## Motivation
 
-**Victim**  
-→ Logs in → taps the big red + → drops pin (auto or draggable) + adds photos → sends SOS
+During disasters, emergency hotlines can become overloaded. ResQ was built to provide a direct, map-based path between victims and volunteer responders, reducing response time and coordination friction.
 
-**Volunteer**  
-→ Opens app → instantly sees exact victim location on live map  
-→ Taps “I’m going” → victim gets SMS: “Help is on the way! Nuran is coming.”
+## What Problem It Solves
 
-→ Once safe → incident closed
+- Victims can share their exact location, urgency, and media evidence quickly.
+- Volunteers can discover nearby active incidents and accept response tasks.
+- Victims receive SMS confirmation when help is on the way.
 
-No overwhelmed hotlines. No waiting. Just real people saving real people.
+## How It Works
 
-### Features
+### Victim flow
+1. Sign in with Google.
+2. Create an incident (title, location, urgency, phone, optional media).
+3. Wait for nearby volunteer acceptance.
+4. Mark incident as resolved when safe.
 
-- Real-time incident visibility (10 km radius)
-- Draggable Mapbox pins with PostGIS geospatial queries
-- Instant Twilio SMS alerts to victims
-- Image/video uploads (Cloudinary)
-- Role-based dashboards (Victim / Volunteer)
-- Fully responsive dark UI with Tailwind CSS
+### Volunteer flow
+1. Sign in and open dashboard.
+2. View nearby incidents on map and list.
+3. Accept an open incident.
+4. Coordinate with victim and complete response.
 
-### Tech Stack (Turborepo monorepo)
+## Key Features
 
-- **Frontend** – Next.js 16 (App Router), React, Tailwind CSS, Mapbox GL JS
-- **Backend** – NestJS, PostgreSQL + PostGIS (Neon), Prisma
-- **Real-time & Alerts** – Twilio SMS
-- **Media** – Cloudinary
-- **Auth** – NextAuth.js + Google OAuth
-- **Deploy** – Vercel (frontend) + Railway (backend)
+- Role-based experience for `VICTIM` and `VOLUNTEER`.
+- Geospatial discovery with PostgreSQL + PostGIS.
+- Live map interaction with draggable markers (Mapbox).
+- Incident media upload support (Cloudinary).
+- Twilio SMS notification when an incident is accepted.
+- Secure cookie-based authentication with token refresh flow.
+- Health checks, validation, global error handling, throttling, and cleanup cron.
 
-### Built for Sri Lanka’s floods
+## Tech Stack
 
-Open-source and ready for the next disaster.
+- Frontend: Next.js 16, React 19, Tailwind CSS, Mapbox GL, Axios
+- Backend: NestJS 11, Prisma, PostgreSQL (Neon), PostGIS
+- Integrations: Google OAuth, Twilio, Cloudinary
+- Monorepo: Turborepo + npm workspaces
+- Deployment: Vercel (web), Railway (api)
 
-## How to Run Locally (5 minutes)
+## Architecture Overview
 
-```bash
-# 1. Clone & enter the project
-git clone https://github.com/nishmikaeka/resq-disaster-platform.git
-cd resq-disaster-platform
+- `apps/web`: UI, incident reporting, dashboards, map experience.
+- `apps/api`: auth, incidents, users, health, security, and background jobs.
+- `packages/database`: Prisma schema/client generation and migrations.
 
-# 2. Install dependencies (Turborepo monorepo)
-npm install
+## Project Structure
 
-# 3. Set up environment variables
-# Copy example files
-cp apps/web/.env.example apps/web/.env.local
-cp apps/api/.env.example apps/api/.env
-
-# Fill these required keys (get free accounts):
-
-# ── apps/web/.env.local ─────────────────────
-NEXTAUTH_SECRET=your-super-long-random-secret
-NEXTAUTH_URL=http://localhost:3000
-NEXT_PUBLIC_BACKEND_URL=http://localhost:3001/api
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_secret
-NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
-
-# ── apps/api/.env ───────────────────────────
-DATABASE_URL=your_neon_postgres_url
-BACKEND_URL=http://localhost:3001
-JWT_SECRET=same-as-nextauth-secret-above
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_secret
-CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
-TWILIO_ACCOUNT_SID=your_sid
-TWILIO_AUTH_TOKEN=your_token
-TWILIO_PHONE_NUMBER=+1xxxxxxxxxx
-
-#start frontend-- apps/web
-npm run dev
-#start backend-- apps/api
-npm start run:dev
-
-#Services you need (all free tiers available)
-
-Neon.tech → PostgreSQL + PostGIS
-Mapbox → Maps
-Cloudinary → Image uploads
-Twilio → SMS alerts (free trial)
-Google OAuth → Google Cloud Console
-```
-
-### Project Structure (quick note)
 ![Folder Structure](apps/web/public/folderStructure.png)
 
-### Want to help?
+## Getting Started
 
-- Volunteer → sign up on the live app
-- Developer → fork, improve, add Sinhala/Tamil translations, push notifications, AI triage
+### Prerequisites
 
-Star · Fork · Share  
-Together we can make sure no one waits alone again.
+- Node.js `>=18`
+- npm `>=10`
+- PostgreSQL database with PostGIS enabled
 
-#ResQ #SriLanka #TechForGood #OpenSource #FullStack #NextJS #NestJS #PostGIS #Twilio
+### Installation
+
+```bash
+git clone https://github.com/nishmikaeka/resq-disaster-platform.git
+cd resq-disaster-platform
+npm install
+```
+
+## Environment Variables
+
+Create:
+- `apps/web/.env.local`
+- `apps/api/.env`
+
+### `apps/web/.env.local`
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001/api
+NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_public_token
+```
+
+### `apps/api/.env`
+
+```env
+PORT=3001
+NODE_ENV=development
+FRONTEND_URL=http://localhost:3000
+SESSION_SECRET=your_long_random_session_secret
+JWT_SECRET=your_long_random_jwt_secret
+
+DATABASE_URL=your_postgres_connection_string
+
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+GOOGLE_CALLBACK_URL=http://localhost:3001/api/auth/callback/google
+
+CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
+
+TWILIO_ACCOUNT_SID=your_twilio_sid
+TWILIO_AUTH_TOKEN=your_twilio_auth_token
+TWILIO_PHONE_NUMBER=+1xxxxxxxxxx
+```
+
+## Run and Test
+
+### Run both apps from monorepo root
+
+```bash
+npm run dev
+```
+
+### Run only API
+
+```bash
+npm run start:dev --workspace=apps/api
+```
+
+### Run only Web
+
+```bash
+npm run dev --workspace=apps/web
+```
+
+### Run API tests
+
+```bash
+npm run test --workspace=apps/api
+```
+
+## Production Notes
+
+- Auth uses HttpOnly cookies for access and refresh tokens.
+- Global throttling is enabled; avoid excessive duplicate client requests.
+- Global validation and exception formatting are enabled.
+- Health endpoint is available at `/api/health`.
+- Daily cron cleanup removes incidents older than 7 days.
+- Use strong secrets for `SESSION_SECRET` and `JWT_SECRET`.
+
+## Roadmap
+
+- Push notifications for responders
+- Sinhala/Tamil localization
+- AI-assisted triage and prioritization
+- Admin dashboard and analytics
+- Offline-friendly fallback flows
+
+## Contributing
+
+Contributions are welcome.
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Commit changes with clear messages.
+4. Open a pull request with a concise description and test steps.
+
+## Credits
+
+- Project author: Nishmika Ekanayake
+- Built for academic research and social impact in disaster-response workflows
+- Thanks to the open-source ecosystem around NestJS, Next.js, Prisma, and Mapbox
+
+## License
+
+This project is currently unlicensed (`UNLICENSED`).  
+If you plan to open-source it formally, choose a license from [choosealicense.com](https://choosealicense.com/).
