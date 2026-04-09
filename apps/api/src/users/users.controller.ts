@@ -1,6 +1,6 @@
 import { Body, Controller, Patch, Req, UseGuards } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { JwtGuard } from 'src/auth/jwt.guard';
+import { JwtGuard } from '../auth/jwt.guard';
 import { JwtService } from '@nestjs/jwt';
 import {
   IsIn,

@@ -7,17 +7,17 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import type { Incident } from "../../types/types/incident";
 import { User } from "./page";
 import { useRouter } from "next/navigation";
+import api from "../../lib/api";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
 interface Props {
   user: User;
   incidents: Incident[];
-  token: string;
   zoom: number;
 }
 
-export default function MapComponent({ user, incidents, zoom, token }: Props) {
+export default function MapComponent({ user, incidents, zoom }: Props) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const marker = useRef<mapboxgl.Marker | null>(null);
@@ -36,24 +36,14 @@ export default function MapComponent({ user, incidents, zoom, token }: Props) {
   const updateLocation = useCallback(
     async (lat: number, lng: number) => {
       try {
-        await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/location`,
-          {
-            method: "PATCH",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ lat, lng }),
-          }
-        );
+        await api.patch("/users/location", { lat, lng });
         showMessage("Location updated successfully!", "success");
       } catch (err) {
         console.error("Failed to update user location:", err);
         showMessage("Failed to save new location.", "error");
       }
     },
-    [token]
+    []
   );
 
   useEffect(() => {
@@ -137,9 +127,8 @@ export default function MapComponent({ user, incidents, zoom, token }: Props) {
       {/* Toast */}
       {message && (
         <div
-          className={`fixed top-4 left-1/2 -translate-x-1/2 z-100 px-1 py-2 rounded-4xl font-mono text-xs text-white bg-black/20 shadow-2xl transition-all ${
-            message.type === "success" ? "text-center" : "bg-red-600"
-          }`}
+          className={`fixed top-4 left-1/2 -translate-x-1/2 z-100 px-1 py-2 rounded-4xl font-mono text-xs text-white bg-black/20 shadow-2xl transition-all ${message.type === "success" ? "text-center" : "bg-red-600"
+            }`}
         >
           {message.text}
         </div>

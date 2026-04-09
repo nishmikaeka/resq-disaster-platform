@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { HeartHandshake, TriangleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSaveTokenAndRedirect } from "../../lib/auth";
+import api from "../../lib/api";
+import toast from "react-hot-toast";
 
 const Onboarding = () => {
   useSaveTokenAndRedirect();
@@ -121,51 +123,22 @@ const Onboarding = () => {
     if (!location || !role) return;
 
     const cleanedPhone = phone.replace(/\D/g, "");
-    const token = localStorage.getItem("access_token");
-
-    console.log("Submitting with token:", token?.substring(0, 20) + "...");
-
-    if (!token) {
-      console.error("No token found");
-      router.replace("/");
-      return;
-    }
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/me`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            role,
-            lat: location.lat,
-            lng: location.lng,
-            phone: role === "VOLUNTEER" ? cleanedPhone : undefined,
-          }),
-        }
-      );
+      const response = await api.patch("/users/me", {
+        role,
+        lat: location.lat,
+        lng: location.lng,
+        phone: role === "VOLUNTEER" ? cleanedPhone : undefined,
+      });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Update failed:", response.status, errorText);
-        throw new Error(`Failed to update profile: ${response.status}`);
-      }
+      console.log("Update response:", response.data);
 
-      const data = await response.json();
-      console.log("Update response:", data);
-
-      if (data.access_token) {
-        console.log("Saving new token");
-        localStorage.setItem("access_token", data.access_token);
-      }
+      // Successfully onboarded
       window.location.href = "/dashboard";
     } catch (err) {
       console.error("Update error:", err);
-      alert("Failed to save profile. Please try again.");
+      toast.error("Failed to save profile. Please try again.");
     }
   };
 
@@ -210,11 +183,10 @@ const Onboarding = () => {
         <div className="space-y-4 mb-6">
           <button
             onClick={() => setRole("VICTIM")}
-            className={`w-full p-2 rounded-2xl border-4 transition-all ${
-              role === "VICTIM"
-                ? " bg-[#131d27] shadow-lg scale-105"
-                : "bg-[#131d27]"
-            }`}
+            className={`w-full p-2 rounded-2xl border-4 transition-all ${role === "VICTIM"
+              ? " bg-[#131d27] shadow-lg scale-105"
+              : "bg-[#131d27]"
+              }`}
           >
             <div className="flex gap-4">
               <div className="bg-[#432c38] w-13 h-13 rounded-full flex justify-center items-center">
@@ -235,11 +207,10 @@ const Onboarding = () => {
 
           <button
             onClick={() => setRole("VOLUNTEER")}
-            className={`w-full p-2 rounded-2xl border-4 transition-all ${
-              role === "VOLUNTEER"
-                ? " bg-[#131d27] shadow-lg scale-105"
-                : "bg-[#131d27]"
-            }`}
+            className={`w-full p-2 rounded-2xl border-4 transition-all ${role === "VOLUNTEER"
+              ? " bg-[#131d27] shadow-lg scale-105"
+              : "bg-[#131d27]"
+              }`}
           >
             <div className="flex gap-4">
               <div className="bg-[#443e2c] w-13 h-13 rounded-full flex justify-center items-center">
@@ -286,11 +257,10 @@ const Onboarding = () => {
         <button
           onClick={submit}
           disabled={!role || (role === "VOLUNTEER" && !phone)}
-          className={`w-full py-3 rounded-2xl font-semibold cursor-pointer text-sm sm:text-lg transition ${
-            role && (role === "VICTIM" || phone)
-              ? "bg-black/30 border border-gray-50 text-white hover:opacity-90"
-              : "bg-gray-500/30 border border-gray-50 text-gray-50 cursor-not-allowed"
-          }`}
+          className={`w-full py-3 rounded-2xl font-semibold cursor-pointer text-sm sm:text-lg transition ${role && (role === "VICTIM" || phone)
+            ? "bg-black/30 border border-gray-50 text-white hover:opacity-90"
+            : "bg-gray-500/30 border border-gray-50 text-gray-50 cursor-not-allowed"
+            }`}
         >
           {role === "VICTIM" ? "Continue as Victim" : "Become a Volunteer"}
         </button>

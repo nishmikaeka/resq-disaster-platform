@@ -16,6 +16,9 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import { User } from "../../dashboard/page";
 import { TimeAgo } from "../../utils/TimeAgo";
 import { Incident } from "../../../types/types/incident";
+import api from "../../../lib/api";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
@@ -102,16 +105,9 @@ export default function IncidentDetailPage() {
 
   // Load incident details
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error("Not found");
-        return r.json();
-      })
-      .then((data) => {
-        setIncident(data);
+    api.get(`/incidents/${id}`)
+      .then((res) => {
+        setIncident(res.data);
         setLoading(false);
         console.log("data fetched");
       })
@@ -124,24 +120,27 @@ export default function IncidentDetailPage() {
     setAccepting(true);
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents/${id}/accept`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (res.ok) {
+      const res = await api.patch(`/incidents/${id}/accept`);
+      if (res.status === 200) {
         router.push("/dashboard?tab=responses");
       } else {
         console.error("Someone already accepted this incident");
       }
     } catch (err) {
-      console.error("Failed to accept", err);
+      if (axios.isAxiosError(err) && err.response?.status === 400) {
+        const message =
+          (err.response.data as { message?: string })?.message ||
+          "Already taken by another volunteer.";
+        toast.error(message);
+        try {
+          const fresh = await api.get(`/incidents/${id}`);
+          setIncident(fresh.data);
+        } catch {
+          router.push("/dashboard");
+        }
+      } else {
+        console.error("Failed to accept", err);
+      }
     } finally {
       setAccepting(false);
     }
@@ -149,7 +148,6 @@ export default function IncidentDetailPage() {
 
   //Cancellation of incident by the volunteer
   const cancelIncident = async () => {
-    const token = localStorage.getItem("access_token");
 
     if (
       canceling ||
@@ -160,18 +158,8 @@ export default function IncidentDetailPage() {
     setCanceling(true);
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents/${id}/cancel`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (res.ok) {
+      const res = await api.patch(`/incidents/${id}/cancel`);
+      if (res.status === 200) {
         router.push("/dashboard?tab=emergencies");
       } else {
         console.log("Lookslike something wrong");
@@ -185,29 +173,17 @@ export default function IncidentDetailPage() {
 
   //Closing of the report after resolved by victim
   const resolveIncident = async () => {
-    const token = localStorage.getItem("access_token");
 
     if (
       resolving ||
-      incident?.status === "OPEN" ||
       incident?.status === "RESOLVED"
     )
       return;
     setResolving(true);
 
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents/${id}/close`,
-        {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      if (res.ok) {
+      const res = await api.patch(`/incidents/${id}/close`);
+      if (res.status === 200) {
         router.push("/dashboard?tab=emergencies");
       } else {
         console.log("Lookslike something wrong");
@@ -271,22 +247,9 @@ export default function IncidentDetailPage() {
 
   //fetch the api/auth/me to verify the victim is equal to the victim who created the incident
   useEffect(() => {
-    const storedToken = localStorage.getItem("access_token");
-    if (!storedToken) {
-      router.replace("/");
-      return;
-    }
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${storedToken}`,
-        "Cache-Control": "no-cache",
-      },
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error("Unauthorized");
-        return r.json();
-      })
-      .then((data) => {
+    api.get("/auth/me")
+      .then((res) => {
+        const data = res.data;
         if (!data.lat || !data.lng) {
           router.replace("/onboarding");
           return;
@@ -294,7 +257,6 @@ export default function IncidentDetailPage() {
         setUser(data as User);
       })
       .catch(() => {
-        localStorage.removeItem("access_token");
         router.replace("/");
       });
   }, [router]);

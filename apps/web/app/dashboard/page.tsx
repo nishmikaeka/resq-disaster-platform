@@ -7,6 +7,7 @@ import { Plus } from "lucide-react";
 import type { Incident } from "../../types/types/incident";
 import Image from "next/image";
 import IncidentList from "./IncidentList";
+import api from "../../lib/api";
 
 // Dynamic map import — prevents SSR issues
 const Map = dynamic(() => import("./MapComponent"), {
@@ -35,7 +36,6 @@ function DashboardContent() {
   const searchParams = useSearchParams();
 
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [nearbyIncidents, setNearbyIncidents] = useState<Incident[]>([]);
   const [myIncidents, setMyIncidents] = useState<Incident[]>([]);
   const [loadingNearby, setLoadingNearby] = useState(true);
@@ -77,38 +77,18 @@ function DashboardContent() {
 
   // Effect to fetch EVERYTHING for the map whenever radius/location changes
   useEffect(() => {
-    if (user && token) {
-      fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents/map-pins?lat=${user.lat}&lng=${user.lng}&radius=${radius}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
-        .then((res) => res.json())
-        .then((data) => setMapIncidents(data));
+    if (user) {
+      api.get(`/incidents/map-pins?lat=${user.lat}&lng=${user.lng}&radius=${radius}`)
+        .then((res) => setMapIncidents(res.data))
+        .catch(err => console.error("Map pins fetch error:", err));
     }
   }, [user?.lat, user?.lng, radius]); // Only triggers on major changes, not scrolling
 
   // Fetch user profile
   useEffect(() => {
-    const storedToken = localStorage.getItem("access_token");
-    if (!storedToken) {
-      router.replace("/");
-      return;
-    }
-    setToken(storedToken);
-
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${storedToken}`,
-        "Cache-Control": "no-cache",
-      },
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error("Unauthorized");
-        return r.json();
-      })
-      .then((data) => {
+    api.get("/auth/me")
+      .then((res) => {
+        const data = res.data;
         if (!data.lat || !data.lng) {
           router.replace("/onboarding");
           return;
@@ -116,7 +96,6 @@ function DashboardContent() {
         setUser(data as User);
       })
       .catch(() => {
-        localStorage.removeItem("access_token");
         router.replace("/");
       });
   }, [router]);
@@ -125,7 +104,7 @@ function DashboardContent() {
   // Inside DashboardContent component
 
   const fetchNearby = async (reset = false) => {
-    if (!user || !token) return;
+    if (!user) return;
 
     // Prevent multiple simultaneous fetches
     if (isLoadingMore || (loadingNearby && !reset)) return;
@@ -141,14 +120,10 @@ function DashboardContent() {
 
     try {
       const cursorParam = !reset && nextCursor ? `&cursor=${nextCursor}` : "";
-      const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents/nearby?lat=${user.lat}&lng=${user.lng}&radius=${radius}&limit=20${cursorParam}`;
+      const url = `/incidents/nearby?lat=${user.lat}&lng=${user.lng}&radius=${radius}&limit=20${cursorParam}`;
 
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const result = await res.json();
+      const res = await api.get(url);
+      const result = res.data;
 
       setNearbyIncidents((prev) =>
         reset ? result.data : [...prev, ...result.data]
@@ -164,38 +139,33 @@ function DashboardContent() {
     }
   };
 
-  // Initial fetch when user, token, or radius changes
+  // Initial fetch when user or radius changes
   useEffect(() => {
-    if (user && token) {
+    if (user) {
       fetchNearby(true); // Reset and load fresh data
     }
-  }, [user, token, radius]);
+  }, [user, radius]);
 
   // Fetch my responses / my reports
   useEffect(() => {
-    if (activeTab !== "responses" || !user || !token) return;
+    if (activeTab !== "responses" || !user) return;
 
     const endpoint =
       user.role === "VOLUNTEER"
-        ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents/my-responses`
-        : `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/incidents/my-reports`;
+        ? "/incidents/my-responses"
+        : "/incidents/my-reports";
 
     const fetchMy = async () => {
       setLoadingMyResponses(true);
       try {
-        const res = await fetch(endpoint, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-        const data = await res.json();
+        const res = await api.get(endpoint);
+        const data = res.data;
         const cleaned = Array.isArray(data)
           ? data.map((i: any) => ({
-              ...i,
-              lat: Number(i.lat),
-              lng: Number(i.lng),
-            }))
+            ...i,
+            lat: Number(i.lat),
+            lng: Number(i.lng),
+          }))
           : [];
         setMyIncidents(cleaned);
       } catch (err) {
@@ -207,7 +177,7 @@ function DashboardContent() {
     };
 
     fetchMy();
-  }, [user, token, activeTab]);
+  }, [user, activeTab]);
 
   // Hide drag tip after 5 seconds
   useEffect(() => {
@@ -232,8 +202,12 @@ function DashboardContent() {
     }
   };
 
-  const handleLogOut = () => {
-    localStorage.removeItem("access_token");
+  const handleLogOut = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
     router.replace("/");
   };
 
@@ -252,7 +226,7 @@ function DashboardContent() {
 
   return (
     <>
-      <Map user={user} incidents={mapIncidents} zoom={zoom} token={token!} />
+      <Map user={user} incidents={mapIncidents} zoom={zoom} />
 
       {/* Top Tab Bar */}
       <div className="fixed top-4 left-2 right-2 z-50">
@@ -281,11 +255,10 @@ function DashboardContent() {
             {/* Emergencies Tab */}
             <button
               onClick={() => router.push("/dashboard")}
-              className={`flex-1 py-2 px-4 rounded-2xl cursor-pointer font-semibold text-xs md:text-sm transition-all ${
-                activeTab === "emergencies"
+              className={`flex-1 py-2 px-4 rounded-2xl cursor-pointer font-semibold text-xs md:text-sm transition-all ${activeTab === "emergencies"
                   ? "bg-[#102d49] text-[#127eeb]"
                   : "bg-[#27313d] text-[#cfd3d9]"
-              }`}
+                }`}
             >
               Emergencies ({mapIncidents.length})
             </button>
@@ -293,11 +266,10 @@ function DashboardContent() {
             {/* My Responses / Reports Tab */}
             <button
               onClick={() => router.push("/dashboard?tab=responses")}
-              className={`flex-1 py-2 px-4 rounded-2xl cursor-pointer font-semibold text-xs md:text-sm transition-all ${
-                activeTab === "responses"
+              className={`flex-1 py-2 px-4 rounded-2xl cursor-pointer font-semibold text-xs md:text-sm transition-all ${activeTab === "responses"
                   ? "bg-[#102d49] text-[#127eeb]"
                   : "bg-[#27313d] text-[#cfd3d9]"
-              }`}
+                }`}
             >
               {user.role === "VOLUNTEER" ? "My Responses" : "My Reports"}
             </button>

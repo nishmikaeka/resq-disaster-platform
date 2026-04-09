@@ -34,7 +34,7 @@ export default function IncidentList({
       (entries) => {
         // Trigger load more when the sentinel is visible and there's more data
         if (
-          entries[0].isIntersecting &&
+          entries[0]?.isIntersecting &&
           hasMore &&
           !isLoadingMore &&
           !isLoading
@@ -107,6 +107,7 @@ export default function IncidentList({
                 inc={inc}
                 activeTab={activeTab}
                 userRole={user.role}
+                currentUserId={user.id}
               />
             ))}
 

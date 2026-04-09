@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 // --- Replaced localFont with googleFont imports ---
 import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
+import ToasterProvider from "./toaster-provider";
 
 // 1. Define Montserrat (Intended as the primary/global font)
 const inter = Inter({
@@ -37,7 +38,10 @@ export default function RootLayout({
       {/* Apply the new font variables to the body tag.
         We will use Tailwind configuration to make 'montserrat' the global default.
       */}
-      <body className={`${inter.variable} ${outfit.variable}`}>{children}</body>
+      <body className={`${inter.variable} ${outfit.variable}`}>
+        <ToasterProvider />
+        {children}
+      </body>
     </html>
   );
 }

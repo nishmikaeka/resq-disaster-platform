@@ -25,7 +25,7 @@ import type { Express } from 'express';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { IncidentWithGeo } from 'src/types/authInterfaces';
 import { ConfigService } from '@nestjs/config';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '@repo/database';
 
 @Controller('incidents')
 export class IncidentsController {
@@ -136,20 +136,19 @@ export class IncidentsController {
       
       WHERE 
         i.status IN ('OPEN', 'IN_PROGRESS')
-        AND ST_DWithin(i.location::geography, sp.geog, ${radius})
-        ${
-          cursor
-            ? Prisma.sql`AND (
+        AND ST_DWithin(i.location::geography, sp.geog, ${Prisma.raw(radius.toString())})
+        ${cursor
+          ? Prisma.sql`AND (
           ST_Distance(i.location::geography, sp.geog), i.id
         ) > (
           (SELECT ST_Distance(location::geography, sp.geog) FROM incidents WHERE id = ${cursor}),
           ${cursor}
         )`
-            : Prisma.empty
+          : Prisma.empty
         }
         
       ORDER BY distance_meters ASC, i.id ASC
-      LIMIT ${validLimit + 1}
+      LIMIT ${Prisma.raw((validLimit + 1).toString())}
     `;
 
       // Check if there are more results
@@ -243,12 +242,12 @@ export class IncidentsController {
 
     return Array.isArray(results)
       ? results.map((inc) => ({
-          ...inc,
-          // Ensure coordinates are cast to numbers
-          lat: parseFloat(inc.lat as any),
-          lng: parseFloat(inc.lng as any),
-          distance: Math.round(inc.distance_meters as number),
-        }))
+        ...inc,
+        // Ensure coordinates are cast to numbers
+        lat: parseFloat(inc.lat as any),
+        lng: parseFloat(inc.lng as any),
+        distance: Math.round(inc.distance_meters as number),
+      }))
       : [];
   }
 
@@ -303,12 +302,12 @@ export class IncidentsController {
     // Process results to ensure lat/lng are number types AND include the calculated distance
     return Array.isArray(results)
       ? results.map((inc) => ({
-          ...inc,
-          lat: parseFloat(inc.lat as any),
-          lng: parseFloat(inc.lng as any),
-          // Map the calculated distance_meters to the 'distance' property (in meters)
-          distance: Math.round(inc.distance_meters as number),
-        }))
+        ...inc,
+        lat: parseFloat(inc.lat as any),
+        lng: parseFloat(inc.lng as any),
+        // Map the calculated distance_meters to the 'distance' property (in meters)
+        distance: Math.round(inc.distance_meters as number),
+      }))
       : [];
   }
   @Get(':id')
@@ -388,18 +387,24 @@ export class IncidentsController {
   async accept(@Param('id') id: string, @Req() req: AuthRequest) {
     const incident = await this.prismaService.incident.findUnique({
       where: { id },
-      include: { user: true, volunteer: true },
     });
 
     if (!incident) throw new NotFoundException('Incident Not Found');
-    if (incident.status !== 'OPEN')
-      throw new BadRequestException('Already taken');
 
-    const updatedIncident = await this.prismaService.incident.update({
-      where: { id },
+    // Atomic claim prevents two volunteers from accepting at the same time.
+    const claimed = await this.prismaService.incident.updateMany({
+      where: { id, status: 'OPEN' },
       data: { status: 'IN_PROGRESS', volunteerId: req.user.id },
+    });
+    if (claimed.count === 0) {
+      throw new BadRequestException('Already taken');
+    }
+
+    const updatedIncident = await this.prismaService.incident.findUnique({
+      where: { id },
       include: { user: true, volunteer: true },
     });
+    if (!updatedIncident) throw new NotFoundException('Incident Not Found');
 
     // Send sms to victim notifying about the volunteer
     if (this.twilioClient && updatedIncident.phone) {

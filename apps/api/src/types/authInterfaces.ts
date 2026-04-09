@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import { User } from '@prisma/client';
+import { User } from '@repo/database';
 
 // Define the exact shape of the user object populated by JwtStrategy
 export interface AuthUserPayload {

@@ -2,60 +2,28 @@ import { useRouter } from "next/navigation";
 import { MapPin, Clock, UserRound, HandHelping } from "lucide-react";
 import type { Incident } from "../../types/types/incident";
 import { TimeAgo } from "../utils/TimeAgo";
-import { useEffect, useState } from "react";
-import { User } from "./page";
 
 // Props structure for the IncidentCard
 interface IncidentCardProps {
   inc: Incident;
   activeTab: "emergencies" | "responses";
   userRole: "VICTIM" | "VOLUNTEER";
+  currentUserId: string;
 }
 
 /**
  * Renders a single, detailed incident card.
  * @param {IncidentCardProps} props - Incident data and context (activeTab, userRole).
  */
-export default function IncidentCard({ inc, activeTab }: IncidentCardProps) {
+export default function IncidentCard({
+  inc,
+  activeTab,
+  currentUserId,
+}: IncidentCardProps) {
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
-  const [isUserReady, setIsUserReady] = useState(false);
-
-  // fetch the api/auth/me to change the button state if the volunteer accepted incident is shown in emergensies tab
-  useEffect(() => {
-    const storedToken = localStorage.getItem("access_token");
-    if (!storedToken) {
-      router.replace("/");
-      setIsUserReady(true); // Treat as ready if unauthenticated
-      return;
-    }
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/me`, {
-      headers: {
-        Authorization: `Bearer ${storedToken}`,
-        "Cache-Control": "no-cache",
-      },
-    })
-      .then((r) => {
-        if (!r.ok) throw new Error("Unauthorized");
-        return r.json();
-      })
-      .then((data) => {
-        if (!data.lat || !data.lng) {
-          router.replace("/onboarding");
-          return;
-        }
-        setUser(data as User);
-        setIsUserReady(true); // Set ready on success
-      })
-      .catch(() => {
-        localStorage.removeItem("access_token");
-        router.replace("/");
-        setIsUserReady(true); // Set ready on failure
-      });
-  }, [router]);
 
   const getButtonText = () => {
-    if (user?.id === inc.userId) {
+    if (currentUserId === inc.userId) {
       return "View Report";
     }
     return "View Details";
@@ -67,7 +35,7 @@ export default function IncidentCard({ inc, activeTab }: IncidentCardProps) {
       case "HIGH":
         return "bg-red-400 px-2 text-red-800 border border-red-700";
       case "MEDIUM":
-        return "bg-orange-400 px-3 text-orange-800 border border-orange-700";
+        return "bg-orange-400 px-2 text-orange-800 border border-orange-700";
       default:
         return "bg-green-400 px-2 text-green-800 border border-green-800";
     }
@@ -93,9 +61,8 @@ export default function IncidentCard({ inc, activeTab }: IncidentCardProps) {
     //incident card loading the details of each incident that is fetched nearby
     <div
       key={inc.id}
-      className={`bg-[#131d27] backdrop-blur-xl rounded-xl p-4 md:p-6 border ${
-        activeTab === "responses" ? "border-gray-300/10" : "border-white/20"
-      }`}
+      className={`bg-[#131d27] backdrop-blur-xl rounded-xl p-4 md:p-6 border ${activeTab === "responses" ? "border-gray-300/10" : "border-white/20"
+        }`}
     >
       <div className="flex justify-between items-start mb-3">
         <div>
@@ -126,22 +93,22 @@ export default function IncidentCard({ inc, activeTab }: IncidentCardProps) {
               </p>
             )}
         </div>
-        <div className="space-y-1 text-center">
+        <div className="space-y-1 flex flex-col items-end shrink-0">
           {/* Urgency Tag */}
           <div
-            className={`py-1 text-[10px] rounded-2xl font-bold self-center ${getUrgencyClasses(
+            className={`py-1 px-2 text-[9px] rounded-2xl font-bold text-center min-w-[85px] border ${getUrgencyClasses(
               inc.urgency
             )}`}
           >
-            URGENCY: {inc.urgency}
+            {inc.urgency}
           </div>
           {/* Status Tag */}
           <div
-            className={`px-2 py-1 text-[10px] rounded-2xl font-bold self-center ${getStatusClasses(
+            className={`px-2 py-1 text-[9px] rounded-2xl font-bold text-center min-w-[85px] border ${getStatusClasses(
               inc.status
             )}`}
           >
-            STATUS: {inc.status}
+            {inc.status.replace("_", " ")}
           </div>
         </div>
       </div>
@@ -149,10 +116,8 @@ export default function IncidentCard({ inc, activeTab }: IncidentCardProps) {
       <button
         onClick={() => router.push(`/incident/${inc.id}`)}
         className={`w-full mt-4 py-2 text-sm rounded-lg cursor-pointer font-semibold transition-all transform hover:scale-[1.02] bg-[#0e66be] hover:bg-blue-800 disabled:opacity-50`}
-        disabled={!isUserReady} // Disable button while user data is fetching
       >
-        {/* Display "Loading..." until isUserReady is true, then display the correct button text */}
-        {isUserReady ? getButtonText() : "Loading..."}
+        {getButtonText()}
       </button>
     </div>
   );
