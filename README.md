@@ -2,7 +2,7 @@
 
 ResQ is a disaster-response platform built for Sri Lanka to connect victims and nearby volunteers quickly during floods, landslides, and other emergencies.
 
-Developed as a solo final-year project at the University of Sri Jayawardenapura.
+Developed as a solo third-year project at the University of Sri Jayawardenapura.
 
 ![ResQ – Real-time Emergency Response Platform](apps/web/public/screenshot.png)
 
@@ -67,7 +67,7 @@ During disasters, emergency hotlines can become overloaded. ResQ was built to pr
 - Backend: NestJS 11, Prisma, PostgreSQL (Neon), PostGIS
 - Integrations: Google OAuth, Twilio, Cloudinary
 - Monorepo: Turborepo + npm workspaces
-- Deployment: Vercel (web), Railway (api)
+- Deployment: AWS EC2 + Nginx + DuckDNS
 
 ## Architecture Overview
 
@@ -104,8 +104,18 @@ Create:
 ### `apps/web/.env.local`
 
 ```env
+# Frontend runtime/public vars
 NEXT_PUBLIC_API_URL=http://localhost:3001/api
+NEXT_PUBLIC_BACKEND_URL=http://localhost:3001
 NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_public_token
+
+# Optional (only if used by your current frontend auth flow)
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=http://localhost:3000
+
+# Optional (only if referenced in frontend code)
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+NEXT_PUBLIC_CLOUDINARY_API_KEY=your_cloudinary_api_key
 ```
 
 ### `apps/api/.env`
@@ -114,6 +124,7 @@ NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_public_token
 PORT=3001
 NODE_ENV=development
 FRONTEND_URL=http://localhost:3000
+BACKEND_URL=http://localhost:3001
 SESSION_SECRET=your_long_random_session_secret
 JWT_SECRET=your_long_random_jwt_secret
 
@@ -121,14 +132,39 @@ DATABASE_URL=your_postgres_connection_string
 
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_CALLBACK_URL=http://localhost:3001/api/auth/callback/google
-
-CLOUDINARY_URL=cloudinary://api_key:api_secret@cloud_name
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 
 TWILIO_ACCOUNT_SID=your_twilio_sid
 TWILIO_AUTH_TOKEN=your_twilio_auth_token
 TWILIO_PHONE_NUMBER=+1xxxxxxxxxx
 ```
+
+### Production values (EC2 + DuckDNS/Nginx)
+
+Use these URL patterns in production:
+
+```env
+# apps/api/.env
+NODE_ENV=production
+PORT=3001
+FRONTEND_URL=https://your-domain.duckdns.org
+BACKEND_URL=https://your-domain.duckdns.org
+```
+
+```env
+# apps/web/.env.local (or .env.production)
+NEXT_PUBLIC_BACKEND_URL=https://your-domain.duckdns.org
+NEXT_PUBLIC_API_URL=https://your-domain.duckdns.org/api
+```
+
+Notes:
+- Keep real secrets out of git.
+- Restart API with `pm2 restart resq-api --update-env` after API env changes.
+- Rebuild web after `NEXT_PUBLIC_*` changes:
+  - `npm run build --workspace=apps/web`
+  - `pm2 restart resq-web --update-env`
 
 ## Run and Test
 
@@ -164,6 +200,53 @@ npm run test --workspace=apps/api
 - Health endpoint is available at `/api/health`.
 - Daily cron cleanup removes incidents older than 7 days.
 - Use strong secrets for `SESSION_SECRET` and `JWT_SECRET`.
+
+## Product and Engineering Decisions
+
+- **Fast sign-up under stress:** Google OAuth reduces friction so users can join quickly during emergencies.
+- **Dark-first interface:** The dashboard uses a dark visual style for clearer map contrast at night and lower perceived battery drain on AMOLED devices.
+- **Geo-first incident discovery:** Nearby incidents are resolved using location-based queries on PostgreSQL + PostGIS.
+- **Scalable API protection:** Rate limiting (`@nestjs/throttler`) helps prevent abuse and accidental request storms.
+- **Automatic data hygiene:** A scheduled cleanup job removes stale incidents to keep feeds relevant and queries efficient.
+- **Production traffic routing:** Nginx acts as reverse proxy and process boundary for web/API routing on EC2.
+- **Stable public endpoint:** DuckDNS provides a persistent domain mapped to EC2 for OAuth callback and API access.
+
+## Infrastructure Snapshot
+
+- **Compute:** Single AWS EC2 instance hosts both `apps/web` and `apps/api`.
+- **Process management:** PM2 keeps services running and supports zero-downtime restarts.
+- **Reverse proxy:** Nginx routes:
+  - `https://<domain>/` -> Next.js web app
+  - `https://<domain>/api` -> NestJS API
+- **Domain:** DuckDNS dynamic DNS maps domain to the EC2 public IP.
+- **Database:** PostgreSQL (Neon) with PostGIS for geospatial capabilities.
+
+## Architecture Diagram
+
+```mermaid
+flowchart LR
+    U[User Browser]
+    D[DuckDNS Domain]
+    N[Nginx Reverse Proxy on EC2]
+    W[Next.js Web App\napps/web]
+    A[NestJS API\napps/api]
+    P[(PostgreSQL + PostGIS\nNeon)]
+    C[Cloudinary]
+    T[Twilio]
+    G[Google OAuth]
+
+    U --> D --> N
+    N -->|/| W
+    N -->|/api| A
+
+    W -->|Google Sign-In| A
+    A -->|OAuth Redirect| G
+    G -->|Callback| A
+
+    A --> P
+    A --> C
+    A --> T
+```
 
 ## Roadmap
 
