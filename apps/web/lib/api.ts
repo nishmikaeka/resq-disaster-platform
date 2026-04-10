@@ -5,14 +5,24 @@ const api = axios.create({
     withCredentials: true, // Crucial for sending/receiving HttpOnly cookies
 });
 
+const shouldSkipRefresh = (url?: string) => {
+    if (!url) return false;
+    return url.includes('/auth/refresh') || url.includes('/auth/logout');
+};
+
 // Response interceptor for automatic token refresh
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
+        const requestUrl: string | undefined = originalRequest?.url;
 
-        // If we get a 401 and haven't tried refreshing yet
-        if (error.response?.status === 401 && !originalRequest._retry) {
+        // If we get a 401 and haven't tried refreshing yet, except for refresh/logout endpoints
+        if (
+            error.response?.status === 401 &&
+            !originalRequest?._retry &&
+            !shouldSkipRefresh(requestUrl)
+        ) {
             originalRequest._retry = true;
 
             try {

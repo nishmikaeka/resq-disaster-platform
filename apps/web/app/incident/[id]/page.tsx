@@ -250,7 +250,7 @@ export default function IncidentDetailPage() {
     api.get("/auth/me")
       .then((res) => {
         const data = res.data;
-        if (!data.lat || !data.lng) {
+        if (data.lat == null || data.lng == null) {
           router.replace("/onboarding");
           return;
         }
