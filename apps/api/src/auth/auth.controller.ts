@@ -80,8 +80,14 @@ export class AuthController {
       cookieOptions(7 * 24 * 60 * 60 * 1000), // 7 days
     );
 
-    // Redirect without tokens in the URL
-    return res.redirect(`${frontendUrl}/onboarding?redirect=/dashboard`);
+    // Redirect users based on onboarding completion.
+    // Existing users with saved coordinates should land directly on dashboard.
+    const hasLocation = req.user.lat != null && req.user.lng != null;
+    const redirectPath = hasLocation
+      ? '/dashboard'
+      : '/onboarding?redirect=/dashboard';
+
+    return res.redirect(`${frontendUrl}${redirectPath}`);
   }
 
   // --- Refresh: issue new access token using refresh cookie ---

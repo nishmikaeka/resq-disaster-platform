@@ -8,7 +8,7 @@ import api from "../../lib/api";
 import toast from "react-hot-toast";
 
 const Onboarding = () => {
-  useSaveTokenAndRedirect();
+  const { authChecking } = useSaveTokenAndRedirect();
   const router = useRouter();
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(
     null
@@ -19,6 +19,8 @@ const Onboarding = () => {
   const [phone, setPhone] = useState("");
 
   useEffect(() => {
+    if (authChecking) return;
+
     // Check if geolocation is supported
     if (!navigator.geolocation) {
       console.error("Geolocation is not supported by this browser");
@@ -95,7 +97,20 @@ const Onboarding = () => {
         maximumAge: 0, // Don't use cached location
       }
     );
-  }, []);
+  }, [authChecking]);
+
+  if (authChecking) {
+    return (
+      <div className="absolute inset-0 -z-10 h-full w-full flex items-center justify-center max-h-screen px-5 py-15 sm:py-24 [background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)]">
+        <div className="text-center">
+          <div className="animate-spin sm:w-12 sm:h-12 w-9 h-9 border-4 border-white border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-sm sm:text-xl font-semibold text-white">
+            Checking your session...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading || !location) {
     return (

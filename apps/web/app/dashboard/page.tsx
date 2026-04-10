@@ -89,7 +89,7 @@ function DashboardContent() {
     api.get("/auth/me")
       .then((res) => {
         const data = res.data;
-        if (!data.lat || !data.lng) {
+        if (data.lat == null || data.lng == null) {
           router.replace("/onboarding");
           return;
         }
@@ -206,7 +206,9 @@ function DashboardContent() {
     try {
       await api.post("/auth/logout");
     } catch (err) {
-      console.error("Logout error:", err);
+      if ((err as { response?: { status?: number } })?.response?.status !== 401) {
+        console.error("Logout error:", err);
+      }
     }
     router.replace("/");
   };
