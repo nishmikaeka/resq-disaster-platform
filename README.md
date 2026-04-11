@@ -2,8 +2,6 @@
 
 ResQ is a disaster-response platform built for Sri Lanka to connect victims and nearby volunteers quickly during floods, landslides, and other emergencies.
 
-Developed as a solo third-year project at the University of Sri Jayawardenapura.
-
 ![ResQ – Real-time Emergency Response Platform](apps/web/public/screenshot.png)
 
 [![Live App](https://img.shields.io/badge/live-vercel-000000.svg)](https://resq-disaster-platform-web.vercel.app)
