@@ -268,10 +268,8 @@ Contributions are welcome.
 ## Credits
 
 - Project author: Nishmika Ekanayake
-- Built for academic research and social impact in disaster-response workflows
 - Thanks to the open-source ecosystem around NestJS, Next.js, Prisma, and Mapbox
 
 ## License
 
-This project is currently unlicensed (`UNLICENSED`).  
-If you plan to open-source it formally, choose a license from [choosealicense.com](https://choosealicense.com/).
+This project is currently unlicensed (`UNLICENSED`). 
