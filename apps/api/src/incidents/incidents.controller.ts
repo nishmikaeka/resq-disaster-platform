@@ -26,6 +26,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { IncidentWithGeo } from 'src/types/authInterfaces';
 import { ConfigService } from '@nestjs/config';
 import { Prisma } from '@repo/database';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
 @Controller('incidents')
 export class IncidentsController {
@@ -77,6 +78,8 @@ export class IncidentsController {
     return this.incidentsService.create(req.user.id, dto, file);
   }
 
+  @UseInterceptors(CacheInterceptor) // <--- The Magic Wand
+  @CacheTTL(5000)
   @Get('nearby')
   async nearby(
     @Query('lat', ParseFloatPipe) lat: number,
@@ -137,14 +140,15 @@ export class IncidentsController {
       WHERE 
         i.status IN ('OPEN', 'IN_PROGRESS')
         AND ST_DWithin(i.location::geography, sp.geog, ${Prisma.raw(radius.toString())})
-        ${cursor
-          ? Prisma.sql`AND (
+        ${
+          cursor
+            ? Prisma.sql`AND (
           ST_Distance(i.location::geography, sp.geog), i.id
         ) > (
           (SELECT ST_Distance(location::geography, sp.geog) FROM incidents WHERE id = ${cursor}),
           ${cursor}
         )`
-          : Prisma.empty
+            : Prisma.empty
         }
         
       ORDER BY distance_meters ASC, i.id ASC
@@ -242,12 +246,12 @@ export class IncidentsController {
 
     return Array.isArray(results)
       ? results.map((inc) => ({
-        ...inc,
-        // Ensure coordinates are cast to numbers
-        lat: parseFloat(inc.lat as any),
-        lng: parseFloat(inc.lng as any),
-        distance: Math.round(inc.distance_meters as number),
-      }))
+          ...inc,
+          // Ensure coordinates are cast to numbers
+          lat: parseFloat(inc.lat as any),
+          lng: parseFloat(inc.lng as any),
+          distance: Math.round(inc.distance_meters as number),
+        }))
       : [];
   }
 
@@ -302,12 +306,12 @@ export class IncidentsController {
     // Process results to ensure lat/lng are number types AND include the calculated distance
     return Array.isArray(results)
       ? results.map((inc) => ({
-        ...inc,
-        lat: parseFloat(inc.lat as any),
-        lng: parseFloat(inc.lng as any),
-        // Map the calculated distance_meters to the 'distance' property (in meters)
-        distance: Math.round(inc.distance_meters as number),
-      }))
+          ...inc,
+          lat: parseFloat(inc.lat as any),
+          lng: parseFloat(inc.lng as any),
+          // Map the calculated distance_meters to the 'distance' property (in meters)
+          distance: Math.round(inc.distance_meters as number),
+        }))
       : [];
   }
   @Get(':id')
