@@ -1,6 +1,6 @@
 <div align="center">
 
-![ResQ – Real-time Emergency Response Platform](apps/web/public/resq-app.png)
+![ResQ – Real-time Emergency Response Platform](apps/web/public/screenshot.png)
 
 # ResQ
 
