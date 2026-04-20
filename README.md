@@ -17,8 +17,6 @@ _Real-time disaster response platform for Sri Lanka — connecting victims and v
 ![AWS EC2](https://img.shields.io/badge/AWS%20EC2%20+%20Nginx-FF9900?style=flat-square&logo=amazon-aws)
 ![License](https://img.shields.io/badge/license-UNLICENSED-red?style=flat-square)
 
-_Solo third-year project · University of Sri Jayawardenapura_
-
 </div>
 
 ---
