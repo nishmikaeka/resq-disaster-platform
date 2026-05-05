@@ -153,6 +153,51 @@ Response: {
 
 ---
 
+## AI Emergency Assistant
+
+ResQ includes a RAG (Retrieval-Augmented Generation) chatbot that gives users instant, grounded emergency guidance — not generic AI responses, but answers pulled directly from verified Sri Lanka disaster management documents.
+
+**How it works**
+
+```
+User asks a question
+  → question is embedded into a 768-dimensional vector
+  → Pinecone finds the 5 most semantically similar document chunks
+  → chunks with confidence score < 0.70 are discarded (no hallucination)
+  → Gemini 2.5 Flash reads only the retrieved context and answers
+  → response includes source document name and relevance score
+```
+
+**What makes it trustworthy**
+
+- Answers are grounded exclusively in ingested documents — the model is explicitly instructed not to use general knowledge
+- Every response cites which source document and chunk it used
+- Low-confidence retrievals return a fallback: *"I don't have specific guidance on that"* rather than a fabricated answer
+- Guardrails prevent medical diagnoses and always recommend calling emergency services for life-threatening situations
+
+**Knowledge base**
+
+The assistant is seeded with Sri Lanka-specific emergency protocols covering flood evacuation, cyclone preparedness, landslide response, earthquake and tsunami procedures, medical emergencies in disaster zones, and official DMC / Suwa Seriya contact information.
+
+**Conversation memory**
+
+Each chat session maintains the last 3 exchanges as context, allowing natural follow-up questions without repeating yourself — *"What about children?"* after asking about flood evacuation works as expected.
+
+**API**
+
+```
+POST /rag/ask
+Body: { question: string, sessionId: string }
+
+Response: {
+  answer: string,
+  sources: [{ title: string, chunkIndex: number, relevanceScore: number }],
+  sessionId: string
+}
+```
+
+---
+
 ## Tech Stack
 
 | Layer            | Technology                                                                                |
