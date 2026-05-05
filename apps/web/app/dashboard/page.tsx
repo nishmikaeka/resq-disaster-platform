@@ -287,18 +287,22 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* Floating + button for victims */}
-      {user.role === "VICTIM" && (
-        <button
-          onClick={() => router.push("/report")}
-          className="fixed bottom-16 right-4 md:right-6 w-14 h-14 cursor-pointer bg-[#137fec] rounded-full shadow-2xl z-50 hover:scale-110 transition-all flex items-center justify-center"
-        >
-          <Plus className="w-8 h-8 text-white" />
-        </button>
-      )}
+      {/* ── Floating Action Buttons (Top Right) ── */}
+      <div className="fixed top-24 right-4 sm:top-5 sm:right-5 z-50 flex flex-col gap-4 items-center">
+        {/* Floating + button for victims */}
+        {user.role === "VICTIM" && (
+          <button
+            onClick={() => router.push("/report")}
+            className="w-12 h-12 cursor-pointer bg-[#137fec] rounded-full shadow-2xl hover:scale-110 transition-all flex items-center justify-center relative"
+            title="Add Incident"
+          >
+            <Plus className="w-8 h-8 text-white" />
+          </button>
+        )}
 
-      {/* AI Chatbot */}
-      <ChatbotUI />
+        {/* AI Chatbot */}
+        <ChatbotUI />
+      </div>
 
       {/* Incident List */}
       <IncidentList
