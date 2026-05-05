@@ -72,7 +72,9 @@ export default function Home() {
             <Image
               src={"/resq_bg_converted.avif"}
               alt="bg"
+              priority
               width={250}
+              quality={75}
               height={250}
             />
           </div>
@@ -80,6 +82,8 @@ export default function Home() {
             <Image
               src={"/resq_bg_converted.avif"}
               alt="bg"
+              priority
+              quality={75}
               width={200}
               height={200}
             />
