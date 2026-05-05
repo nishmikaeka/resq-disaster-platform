@@ -20,19 +20,20 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
+            # 1. Use the correct path found by your 'ls' command
             cd /home/ubuntu/resq-disaster-platform
-
             git pull origin aws
 
-            # Install and Build
+            # 2. Prevent memory crashes during build (important for t3.micro)
+            export NODE_OPTIONS="--max-old-space-size=2048"
+
+            # 3. Install and Build
             npm install
             npm run build
 
-            # Sync Database (Prisma)
+            # 4. Sync Database
             npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma
 
-            # Restart API
-            pm2 restart resq-api || pm2 start apps/api/dist/main.js --name resq-api
-
-            # Restart Web (Next.js)
-            pm2 restart resq-web || pm2 start "npm run start --workspace=apps/web" --name resq-web
+            # 5. Restart with the correct paths
+            pm2 restart resq-api --update-env || pm2 start apps/api/dist/main.js --name resq-api
+            pm2 restart resq-web --update-env || pm2 start "npm run start --workspace=apps/web" --name resq-web
