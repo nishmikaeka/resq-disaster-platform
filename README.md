@@ -6,6 +6,13 @@
 
 _Real-time disaster response platform for Sri Lanka — connecting victims and volunteers during floods, landslides, and emergencies._
 
+<p align="center">
+  <img src="apps/web/public/1.png" width="24%" alt="Screenshot 1" />
+  <img src="apps/web/public/2.png" width="24%" alt="Screenshot 2" />
+  <img src="apps/web/public/3.png" width="24%" alt="Screenshot 3" />
+  <img src="apps/web/public/4.png" width="24%" alt="Screenshot 4" />
+</p>
+
 [![Live App](https://img.shields.io/badge/live-vercel-000000?style=flat-square&logo=vercel)](https://resq-disaster-platform-web.vercel.app)
 [![GitHub Stars](https://img.shields.io/github/stars/nishmikaeka/resq-disaster-platform?style=flat-square&logo=github)](https://github.com/nishmikaeka/resq-disaster-platform)
 ![Next.js](https://img.shields.io/badge/Next.js%2016-black?style=flat-square&logo=next.js)
@@ -14,9 +21,10 @@ _Real-time disaster response platform for Sri Lanka — connecting victims and v
 ![Google OAuth](https://img.shields.io/badge/Google%20OAuth-4285F4?style=flat-square&logo=google)
 ![Mapbox](https://img.shields.io/badge/Mapbox%20GL-000000?style=flat-square&logo=mapbox)
 ![Twilio](https://img.shields.io/badge/Twilio-F22F46?style=flat-square&logo=twilio)
+![Gemini AI](https://img.shields.io/badge/Gemini%202.5%20Flash-4285F4?style=flat-square&logo=google)
+![Pinecone](https://img.shields.io/badge/Pinecone%20Vector%20DB-000000?style=flat-square)
 ![AWS EC2](https://img.shields.io/badge/AWS%20EC2%20+%20Nginx-FF9900?style=flat-square&logo=amazon-aws)
 ![License](https://img.shields.io/badge/license-UNLICENSED-red?style=flat-square)
-
 
 </div>
 
@@ -28,6 +36,7 @@ _Real-time disaster response platform for Sri Lanka — connecting victims and v
 - [What It Solves](#what-it-solves)
 - [How It Works](#how-it-works)
 - [Key Features](#key-features)
+- [AI Emergency Assistant](#ai-emergency-assistant)
 - [Tech Stack](#tech-stack)
 - [Architecture Overview](#architecture-overview)
 - [Project Structure](#project-structure)
@@ -48,7 +57,7 @@ _Real-time disaster response platform for Sri Lanka — connecting victims and v
 
 ## Motivation
 
-During disasters, emergency hotlines become overloaded and coordination breaks down. ResQ provides a direct, map-based path between victims and volunteer responders — reducing response time and friction when it matters most.
+During disasters, emergency hotlines become overloaded and coordination breaks down. ResQ provides a direct, map-based path between victims and volunteer responders — reducing response time and friction when it matters most. Beyond connecting people, ResQ also gives every user instant access to verified emergency guidance through an AI assistant trained on real disaster response protocols.
 
 ---
 
@@ -60,6 +69,7 @@ During disasters, emergency hotlines become overloaded and coordination breaks d
 | Slow victim-responder matching | Geospatial proximity discovery via PostGIS   |
 | No confirmation for victims    | Twilio SMS when a volunteer accepts          |
 | No media evidence support      | Cloudinary media upload on incident creation |
+| No instant safety guidance     | RAG-powered AI chatbot grounded in verified Sri Lanka disaster protocols — answers cited to source documents |
 
 ---
 
@@ -69,8 +79,9 @@ During disasters, emergency hotlines become overloaded and coordination breaks d
 
 1. Sign in with Google
 2. Create an incident — title, location, urgency, phone, optional media
-3. Wait for a nearby volunteer to accept
-4. Mark the incident as resolved when safe
+3. Ask the AI assistant for immediate guidance while waiting for a volunteer
+4. Wait for a nearby volunteer to accept
+5. Mark the incident as resolved when safe
 
 **Volunteer Flow**
 
@@ -85,6 +96,8 @@ During disasters, emergency hotlines become overloaded and coordination breaks d
 
 | Feature                  | Details                                            |
 | ------------------------ | -------------------------------------------------- |
+| **AI emergency assistant** | RAG chatbot grounded in verified disaster protocols — cited answers with source + confidence score |
+| **Conversation memory**  | Maintains last 3 exchanges per session for natural follow-up questions |
 | **Role-based access**    | Separate flows for `VICTIM` and `VOLUNTEER`        |
 | **Geospatial discovery** | Nearby incidents via PostgreSQL + PostGIS          |
 | **Live map interaction** | Draggable markers powered by Mapbox GL             |
@@ -98,12 +111,58 @@ During disasters, emergency hotlines become overloaded and coordination breaks d
 
 ---
 
+## AI Emergency Assistant
+
+ResQ includes a RAG (Retrieval-Augmented Generation) chatbot that gives users instant, grounded emergency guidance — not generic AI responses, but answers pulled directly from verified Sri Lanka disaster management documents.
+
+**How it works**
+
+```
+User asks a question
+  → question is embedded into a 768-dimensional vector
+  → Pinecone finds the 5 most semantically similar document chunks
+  → chunks with confidence score < 0.70 are discarded (no hallucination)
+  → Gemini 2.5 Flash reads only the retrieved context and answers
+  → response includes source document name and relevance score
+```
+
+**What makes it trustworthy**
+
+- Answers are grounded exclusively in ingested documents — the model is explicitly instructed not to use general knowledge
+- Every response cites which source document and chunk it used
+- Low-confidence retrievals return a fallback: *"I don't have specific guidance on that"* rather than a fabricated answer
+- Guardrails prevent medical diagnoses and always recommend calling emergency services for life-threatening situations
+
+**Knowledge base**
+
+The assistant is seeded with Sri Lanka-specific emergency protocols covering flood evacuation, cyclone preparedness, landslide response, earthquake and tsunami procedures, medical emergencies in disaster zones, and official DMC / Suwa Seriya contact information.
+
+**Conversation memory**
+
+Each chat session maintains the last 3 exchanges as context, allowing natural follow-up questions without repeating yourself — *"What about children?"* after asking about flood evacuation works as expected.
+
+**API**
+
+```
+POST /rag/ask
+Body: { question: string, sessionId: string }
+
+Response: {
+  answer: string,
+  sources: [{ title: string, chunkIndex: number, relevanceScore: number }],
+  sessionId: string
+}
+```
+
+---
+
 ## Tech Stack
 
 | Layer            | Technology                                                              |
 | ---------------- | ----------------------------------------------------------------------- |
 | **Frontend**     | Next.js 16, React 19, Tailwind CSS, Mapbox GL, Axios                    |
 | **Backend**      | NestJS 11, Prisma, PostgreSQL (Neon), PostGIS, Throttler, Cache Manager |
+| **AI / RAG**     | Gemini 2.5 Flash (generation), text-embedding-004 (768-dim vectors), Pinecone (vector DB) |
 | **Integrations** | Google OAuth, Twilio, Cloudinary                                        |
 | **Monorepo**     | Turborepo + npm workspaces                                              |
 | **Deployment**   | AWS EC2 + Nginx + DuckDNS + PM2                                         |
@@ -112,8 +171,8 @@ During disasters, emergency hotlines become overloaded and coordination breaks d
 
 ## Architecture Overview
 
-- `apps/web` — UI, incident reporting, dashboards, map experience (Next.js)
-- `apps/api` — Auth, incidents, users, health, security, background jobs (NestJS)
+- `apps/web` — UI, incident reporting, dashboards, map experience, AI chat interface (Next.js)
+- `apps/api` — Auth, incidents, users, RAG chatbot, health, security, background jobs (NestJS)
 - `packages/database` — Prisma schema, client generation, and migrations
 
 ---
@@ -135,6 +194,8 @@ resq-disaster-platform/
 │       │   ├── auth/           # Google OAuth, JWT, cookie strategy
 │       │   ├── incidents/      # Incident CRUD, geospatial queries
 │       │   ├── users/          # User roles and profile
+│       │   ├── rag/            # RAG chatbot — retrieval, generation, session memory
+│       │   ├── assets/         # Seeded disaster response PDFs (Sri Lanka)
 │       │   ├── health/         # Health check endpoint
 │       │   └── common/         # Guards, filters, pipes, cron jobs
 │       └── .env
@@ -153,6 +214,14 @@ git clone https://github.com/nishmikaeka/resq-disaster-platform.git
 cd resq-disaster-platform
 npm install
 ```
+
+**Seed the AI knowledge base (run once)**
+
+```bash
+npx ts-node apps/api/src/rag/seed.ts
+```
+
+This reads all PDFs from `apps/api/src/assets/`, chunks and embeds them, and upserts to Pinecone. Only needs to run again if you add new documents.
 
 ---
 
@@ -190,6 +259,8 @@ CLOUDINARY_API_SECRET=your_cloudinary_api_secret
 TWILIO_ACCOUNT_SID=your_twilio_sid
 TWILIO_AUTH_TOKEN=your_twilio_auth_token
 TWILIO_PHONE_NUMBER=+1xxxxxxxxxx
+GOOGLE_AI_KEY=your_google_ai_api_key
+PINECONE_API_KEY=your_pinecone_api_key
 ```
 
 ### Production (EC2 + DuckDNS + Nginx)
@@ -232,6 +303,7 @@ npm run test --workspace=apps/api              # API tests
 | **State integrity**           | `RESOLVED` incidents cannot be re-accepted by any volunteer                                         |
 | **Geospatial edge cases**     | Out-of-bounds coordinates (e.g., `0, 0`) return empty results without system failure                |
 | **Data type accuracy**        | High-precision PostGIS coordinates correctly map to numerical types for map rendering               |
+| **RAG confidence threshold**  | Queries with no relevant context return the fallback message, not a fabricated answer               |
 
 ### Performance & Stress Testing (k6)
 
@@ -258,6 +330,7 @@ npm run test --workspace=apps/api              # API tests
 | **Error handling**    | `GlobalExceptionFilter` for consistent API errors and logging         |
 | **Health monitoring** | `/api/health` with live Prisma connectivity check                     |
 | **Data hygiene**      | Daily cron removes incidents older than 7 days                        |
+| **RAG guardrails**    | Confidence threshold (0.70) prevents low-quality retrievals; system prompt constrains model to context-only answers |
 
 ---
 
@@ -265,6 +338,11 @@ npm run test --workspace=apps/api              # API tests
 
 | Decision                    | Rationale                                                                           |
 | --------------------------- | ----------------------------------------------------------------------------------- |
+| **RAG over fine-tuning**    | Grounded retrieval prevents hallucination and allows the knowledge base to be updated without retraining |
+| **Pinecone (managed)**      | Eliminates Docker/self-hosting overhead; free tier covers the demo use case at scale |
+| **text-embedding-004**      | Same Google ecosystem as Gemini; 768-dim vectors balance accuracy and storage cost  |
+| **Confidence threshold**    | Discarding matches below 0.70 cosine similarity prevents low-quality answers being surfaced to users in crisis |
+| **In-memory session history** | Sufficient for demo scale; stateless per-restart is acceptable for a portfolio project |
 | **Google OAuth**            | Reduces sign-up friction — users can join quickly during an active emergency        |
 | **Dark-first UI**           | Clearer map contrast at night; lower perceived battery drain on AMOLED devices      |
 | **PostGIS spatial queries** | Geo-first discovery minimises irrelevant results and response latency               |
@@ -284,6 +362,7 @@ npm run test --workspace=apps/api              # API tests
 | **Reverse proxy**      | Nginx routes `/` → Next.js, `/api` → NestJS; handles SSL termination |
 | **Domain**             | DuckDNS dynamic DNS maps a persistent subdomain to EC2 public IP     |
 | **Database**           | PostgreSQL (Neon) with PostGIS for geospatial capabilities           |
+| **Vector database**    | Pinecone (managed) — stores 768-dim embeddings for RAG retrieval     |
 
 ---
 
@@ -297,6 +376,8 @@ flowchart LR
     W[Next.js\napps/web]
     A[NestJS API\napps/api]
     P[(PostgreSQL + PostGIS\nNeon)]
+    PC[(Pinecone\nVector DB)]
+    GM[Gemini 2.5 Flash\n+ text-embedding-004]
     C[Cloudinary]
     T[Twilio]
     G[Google OAuth]
@@ -310,6 +391,9 @@ flowchart LR
     A --> P
     A --> C
     A --> T
+    A -->|embed + query| PC
+    A -->|generate answer| GM
+    PC -->|top-k chunks| A
 ```
 
 ---
@@ -318,7 +402,8 @@ flowchart LR
 
 - [ ] Push notifications for responders
 - [ ] Sinhala / Tamil localization
-- [ ] AI-assisted triage and prioritization
+- [ ] AI-assisted triage and incident prioritization
+- [ ] Persistent RAG session history (Redis-backed)
 - [ ] Admin dashboard and analytics
 - [ ] Redis-based horizontal scaling for caching and sessions
 - [ ] Offline-friendly fallback flows
@@ -338,4 +423,10 @@ flowchart LR
 
 **Author:** [Nishmika Ekanayake](https://github.com/nishmikaeka) — built for academic research and social impact in disaster-response workflows.
 
-Thanks to the open-source ecosystem around NestJS, Next.js, Prisma, and Mapbox.
+Thanks to the open-source ecosystem around NestJS, Next.js, Prisma, Mapbox, and the Google AI platform.
+
+---
+
+## License
+
+UNLICENSED — all rights reserved.
