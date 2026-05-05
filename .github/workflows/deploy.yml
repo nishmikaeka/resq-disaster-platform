@@ -1,0 +1,38 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - aws
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            cd /home/ubuntu/resq-disaster-platform
+
+            git pull origin aws
+
+            # Install and Build
+            npm install
+            npm run build
+
+            # Sync Database (Prisma)
+            npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma
+
+            # Restart API
+            pm2 restart resq-api || pm2 start apps/api/dist/main.js --name resq-api
+
+            # Restart Web (Next.js)
+            pm2 restart resq-web || pm2 start "npm run start --workspace=apps/web" --name resq-web
