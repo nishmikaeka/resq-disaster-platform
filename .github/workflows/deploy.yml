@@ -3,11 +3,12 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - aws
+      - aws # The pipeline runs only when code hits the 'aws' branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -20,22 +21,32 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           port: 22
           script: |
-            # 1. Use the correct path found by your 'ls' command
             cd /home/ubuntu/resq-disaster-platform
-            git pull origin aws
 
-            # 2. Prevent memory crashes during build (important for t3.micro)
+            # 1. Force the local code to match GitHub exactly (Fixes the merge abort error)
+            git fetch origin aws
+            git reset --hard origin/aws
+
+            # 2. Prevent memory crashes during build (Important for t3.micro)
             export NODE_OPTIONS="--max-old-space-size=2048"
 
-            export $(grep -v '^#' apps/web/.env.local | xargs)
+            # 3. Load environment variables for Prisma and Build
+            if [ -f apps/web/.env.local ]; then
+              set -a
+              source apps/web/.env.local
+              set +a
+            fi
 
-            # 3. Install and Build
+            # 4. Install and Build using Turbo
             npm install
-            npm run build
+            npx turbo run build --no-cache
 
-            # 4. Sync Database
+            # 5. Sync Database
             npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma
 
-            # 5. Restart with the correct paths
+            # 6. Restart services with the correct names
             pm2 restart resq-api --update-env || pm2 start apps/api/dist/main.js --name resq-api
             pm2 restart resq-web --update-env || pm2 start "npm run start --workspace=apps/web" --name resq-web
+
+            # 7. Save PM2 state
+            pm2 save
