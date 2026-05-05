@@ -1,34 +1,31 @@
 <div align="center">
 
-![ResQ – Real-time Emergency Response Platform](apps/web/public/screenshot.png)
-
 # ResQ
 
-_Real-time disaster response platform for Sri Lanka — connecting victims and volunteers during floods, landslides, and emergencies._
+Real-time disaster response platform for Sri Lanka — connecting victims and volunteers during floods, landslides, and emergencies.
 
-<p align="center">
-  <img src="apps/web/public/1.png" width="24%" alt="Screenshot 1" />
-  <img src="apps/web/public/2.png" width="24%" alt="Screenshot 2" />
-  <img src="apps/web/public/3.png" width="24%" alt="Screenshot 3" />
-  <img src="apps/web/public/4.png" width="24%" alt="Screenshot 4" />
-</p>
-
-[![Live App](https://img.shields.io/badge/live-vercel-000000?style=flat-square&logo=vercel)](https://resq-disaster-platform-web.vercel.app)
-[![GitHub Stars](https://img.shields.io/github/stars/nishmikaeka/resq-disaster-platform?style=flat-square&logo=github)](https://github.com/nishmikaeka/resq-disaster-platform)
 ![Next.js](https://img.shields.io/badge/Next.js%2016-black?style=flat-square&logo=next.js)
 ![NestJS](https://img.shields.io/badge/NestJS%2011-E0234E?style=flat-square&logo=nestjs)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL%20+%20PostGIS-336791?style=flat-square&logo=postgresql)
-![Google OAuth](https://img.shields.io/badge/Google%20OAuth-4285F4?style=flat-square&logo=google)
-![Mapbox](https://img.shields.io/badge/Mapbox%20GL-000000?style=flat-square&logo=mapbox)
-![Twilio](https://img.shields.io/badge/Twilio-F22F46?style=flat-square&logo=twilio)
-![Gemini AI](https://img.shields.io/badge/Gemini%202.5%20Flash-4285F4?style=flat-square&logo=google)
 ![Pinecone](https://img.shields.io/badge/Pinecone%20Vector%20DB-000000?style=flat-square)
 ![AWS EC2](https://img.shields.io/badge/AWS%20EC2%20+%20Nginx-FF9900?style=flat-square&logo=amazon-aws)
-![License](https://img.shields.io/badge/license-UNLICENSED-red?style=flat-square)
+![Mapbox](https://img.shields.io/badge/Mapbox%20GL-000000?style=flat-square&logo=mapbox)
+![Google OAuth](https://img.shields.io/badge/Google%20OAuth-4285F4?style=flat-square&logo=google&logoColor=white)
+![Twilio](https://img.shields.io/badge/Twilio-F22F46?style=flat-square&logo=twilio)
+![Gemini AI](https://img.shields.io/badge/Gemini%203%20Flash-4285F4?style=flat-square&logo=googlegemini&logoColor=white)
+
+<p></p>
+
+<table align="center">
+  <tr>
+    <td width="24%" align="center"><img src="apps/web/public/1.png" alt="Screenshot 1" /></td>
+    <td width="24%" align="center"><img src="apps/web/public/2.png" alt="Screenshot 2" /></td>
+    <td width="24%" align="center"><img src="apps/web/public/3.png" alt="Screenshot 3" /></td>
+    <td width="24%" align="center"><img src="apps/web/public/4.png" alt="Screenshot 4" /></td>
+  </tr>
+</table>
 
 </div>
-
----
 
 ## Table of Contents
 
@@ -63,12 +60,12 @@ During disasters, emergency hotlines become overloaded and coordination breaks d
 
 ## What It Solves
 
-| Problem                        | ResQ Solution                                |
-| ------------------------------ | -------------------------------------------- |
-| Overwhelmed emergency hotlines | Decentralized volunteer dispatch             |
-| Slow victim-responder matching | Geospatial proximity discovery via PostGIS   |
-| No confirmation for victims    | Twilio SMS when a volunteer accepts          |
-| No media evidence support      | Cloudinary media upload on incident creation |
+| Problem                        | ResQ Solution                                                                                                |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| Overwhelmed emergency hotlines | Decentralized volunteer dispatch                                                                             |
+| Slow victim-responder matching | Geospatial proximity discovery via PostGIS                                                                   |
+| No confirmation for victims    | Twilio SMS when a volunteer accepts                                                                          |
+| No media evidence support      | Cloudinary media upload on incident creation                                                                 |
 | No instant safety guidance     | RAG-powered AI chatbot grounded in verified Sri Lanka disaster protocols — answers cited to source documents |
 
 ---
@@ -94,20 +91,65 @@ During disasters, emergency hotlines become overloaded and coordination breaks d
 
 ## Key Features
 
-| Feature                  | Details                                            |
-| ------------------------ | -------------------------------------------------- |
+| Feature                    | Details                                                                                            |
+| -------------------------- | -------------------------------------------------------------------------------------------------- |
 | **AI emergency assistant** | RAG chatbot grounded in verified disaster protocols — cited answers with source + confidence score |
-| **Conversation memory**  | Maintains last 3 exchanges per session for natural follow-up questions |
-| **Role-based access**    | Separate flows for `VICTIM` and `VOLUNTEER`        |
-| **Geospatial discovery** | Nearby incidents via PostgreSQL + PostGIS          |
-| **Live map interaction** | Draggable markers powered by Mapbox GL             |
-| **Media upload**         | Incident photo/video evidence via Cloudinary       |
-| **SMS notifications**    | Twilio alert sent to victim when volunteer accepts |
-| **Secure auth**          | `HttpOnly` cookie-based tokens with refresh flow   |
-| **Rate limiting**        | Global throttling via `@nestjs/throttler`          |
-| **Response caching**     | In-memory cache on performance-heavy routes        |
-| **Data hygiene**         | Daily cron removes incidents older than 7 days     |
-| **Health checks**        | `/api/health` with live Prisma connectivity check  |
+| **Conversation memory**    | Maintains last 3 exchanges per session for natural follow-up questions                             |
+| **Role-based access**      | Separate flows for `VICTIM` and `VOLUNTEER`                                                        |
+| **Geospatial discovery**   | Nearby incidents via PostgreSQL + PostGIS                                                          |
+| **Live map interaction**   | Draggable markers powered by Mapbox GL                                                             |
+| **Media upload**           | Incident photo/video evidence via Cloudinary                                                       |
+| **SMS notifications**      | Twilio alert sent to victim when volunteer accepts                                                 |
+| **Secure auth**            | `HttpOnly` cookie-based tokens with refresh flow                                                   |
+| **Rate limiting**          | Global throttling via `@nestjs/throttler`                                                          |
+| **Response caching**       | In-memory cache on performance-heavy routes                                                        |
+| **Data hygiene**           | Daily cron removes incidents older than 7 days                                                     |
+| **Health checks**          | `/api/health` with live Prisma connectivity check                                                  |
+
+---
+
+## AI Emergency Assistant
+
+ResQ includes a RAG (Retrieval-Augmented Generation) chatbot that gives users instant, grounded emergency guidance — not generic AI responses, but answers pulled directly from verified Sri Lanka disaster management documents.
+
+**How it works**
+
+```
+User asks a question
+  → question is embedded into a 3072-dimensional vector
+  → Pinecone finds the 5 most semantically similar document chunks
+  → chunks with confidence score < 0.70 are discarded (no hallucination)
+  → Gemini 3 Flash reads only the retrieved context and answers
+  → response includes source document name and relevance score
+```
+
+**What makes it trustworthy**
+
+- Answers are grounded exclusively in ingested documents — the model is explicitly instructed not to use general knowledge
+- Every response cites which source document and chunk it used
+- Low-confidence retrievals return a fallback: _"I don't have specific guidance on that"_ rather than a fabricated answer
+- Guardrails prevent medical diagnoses and always recommend calling emergency services for life-threatening situations
+
+**Knowledge base**
+
+The assistant is seeded with Sri Lanka-specific emergency protocols covering flood evacuation, cyclone preparedness, landslide response, earthquake and tsunami procedures, medical emergencies in disaster zones, and official DMC / Suwa Seriya contact information.
+
+**Conversation memory**
+
+Each chat session maintains the last 3 exchanges as context, allowing natural follow-up questions without repeating yourself — _"What about children?"_ after asking about flood evacuation works as expected.
+
+**API**
+
+```
+POST /rag/ask
+Body: { question: string, sessionId: string }
+
+Response: {
+  answer: string,
+  sources: [{ title: string, chunkIndex: number, relevanceScore: number }],
+  sessionId: string
+}
+```
 
 ---
 
@@ -158,14 +200,14 @@ Response: {
 
 ## Tech Stack
 
-| Layer            | Technology                                                              |
-| ---------------- | ----------------------------------------------------------------------- |
-| **Frontend**     | Next.js 16, React 19, Tailwind CSS, Mapbox GL, Axios                    |
-| **Backend**      | NestJS 11, Prisma, PostgreSQL (Neon), PostGIS, Throttler, Cache Manager |
+| Layer            | Technology                                                                                |
+| ---------------- | ----------------------------------------------------------------------------------------- |
+| **Frontend**     | Next.js 16, React 19, Tailwind CSS, Mapbox GL, Axios                                      |
+| **Backend**      | NestJS 11, Prisma, PostgreSQL (Neon), PostGIS, Throttler, Cache Manager                   |
 | **AI / RAG**     | Gemini 2.5 Flash (generation), text-embedding-004 (768-dim vectors), Pinecone (vector DB) |
-| **Integrations** | Google OAuth, Twilio, Cloudinary                                        |
-| **Monorepo**     | Turborepo + npm workspaces                                              |
-| **Deployment**   | AWS EC2 + Nginx + DuckDNS + PM2                                         |
+| **Integrations** | Google OAuth, Twilio, Cloudinary                                                          |
+| **Monorepo**     | Turborepo + npm workspaces                                                                |
+| **Deployment**   | AWS EC2 + Nginx + DuckDNS + PM2                                                           |
 
 ---
 
@@ -178,8 +220,6 @@ Response: {
 ---
 
 ## Project Structure
-
-![Folder Structure](apps/web/public/folderStructure.png)
 
 ```
 resq-disaster-platform/
@@ -320,36 +360,36 @@ npm run test --workspace=apps/api              # API tests
 
 ## Production Notes
 
-| Concern               | Implementation                                                        |
-| --------------------- | --------------------------------------------------------------------- |
-| **Authentication**    | `HttpOnly` cookies for access and refresh tokens                      |
-| **Security**          | Global headers via `helmet`; CORS scoped to production origins        |
-| **Rate limiting**     | `@nestjs/throttler` prevents abuse and request storms                 |
-| **Caching**           | In-memory cache on performance-heavy routes (nearby incidents)        |
-| **Validation**        | Strict `ValidationPipe` (whitelist + auto-transform) globally applied |
-| **Error handling**    | `GlobalExceptionFilter` for consistent API errors and logging         |
-| **Health monitoring** | `/api/health` with live Prisma connectivity check                     |
-| **Data hygiene**      | Daily cron removes incidents older than 7 days                        |
+| Concern               | Implementation                                                                                                      |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| **Authentication**    | `HttpOnly` cookies for access and refresh tokens                                                                    |
+| **Security**          | Global headers via `helmet`; CORS scoped to production origins                                                      |
+| **Rate limiting**     | `@nestjs/throttler` prevents abuse and request storms                                                               |
+| **Caching**           | In-memory cache on performance-heavy routes (nearby incidents)                                                      |
+| **Validation**        | Strict `ValidationPipe` (whitelist + auto-transform) globally applied                                               |
+| **Error handling**    | `GlobalExceptionFilter` for consistent API errors and logging                                                       |
+| **Health monitoring** | `/api/health` with live Prisma connectivity check                                                                   |
+| **Data hygiene**      | Daily cron removes incidents older than 7 days                                                                      |
 | **RAG guardrails**    | Confidence threshold (0.70) prevents low-quality retrievals; system prompt constrains model to context-only answers |
 
 ---
 
 ## Engineering Decisions
 
-| Decision                    | Rationale                                                                           |
-| --------------------------- | ----------------------------------------------------------------------------------- |
-| **RAG over fine-tuning**    | Grounded retrieval prevents hallucination and allows the knowledge base to be updated without retraining |
-| **Pinecone (managed)**      | Eliminates Docker/self-hosting overhead; free tier covers the demo use case at scale |
-| **text-embedding-004**      | Same Google ecosystem as Gemini; 768-dim vectors balance accuracy and storage cost  |
-| **Confidence threshold**    | Discarding matches below 0.70 cosine similarity prevents low-quality answers being surfaced to users in crisis |
-| **In-memory session history** | Sufficient for demo scale; stateless per-restart is acceptable for a portfolio project |
-| **Google OAuth**            | Reduces sign-up friction — users can join quickly during an active emergency        |
-| **Dark-first UI**           | Clearer map contrast at night; lower perceived battery drain on AMOLED devices      |
-| **PostGIS spatial queries** | Geo-first discovery minimises irrelevant results and response latency               |
-| **Rate limiting**           | Prevents abuse and accidental request storms during high-traffic events             |
-| **Cleanup cron**            | Keeps incident feeds relevant and database queries efficient over time              |
-| **Nginx reverse proxy**     | Routes web and API traffic on a single EC2 instance with SSL termination            |
-| **DuckDNS**                 | Persistent domain mapped to EC2 public IP for stable OAuth callbacks and API access |
+| Decision                      | Rationale                                                                                                      |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **RAG over fine-tuning**      | Grounded retrieval prevents hallucination and allows the knowledge base to be updated without retraining       |
+| **Pinecone (managed)**        | Eliminates Docker/self-hosting overhead; free tier covers the demo use case at scale                           |
+| **text-embedding-004**        | Same Google ecosystem as Gemini; 768-dim vectors balance accuracy and storage cost                             |
+| **Confidence threshold**      | Discarding matches below 0.70 cosine similarity prevents low-quality answers being surfaced to users in crisis |
+| **In-memory session history** | Sufficient for demo scale; stateless per-restart is acceptable for a portfolio project                         |
+| **Google OAuth**              | Reduces sign-up friction — users can join quickly during an active emergency                                   |
+| **Dark-first UI**             | Clearer map contrast at night; lower perceived battery drain on AMOLED devices                                 |
+| **PostGIS spatial queries**   | Geo-first discovery minimises irrelevant results and response latency                                          |
+| **Rate limiting**             | Prevents abuse and accidental request storms during high-traffic events                                        |
+| **Cleanup cron**              | Keeps incident feeds relevant and database queries efficient over time                                         |
+| **Nginx reverse proxy**       | Routes web and API traffic on a single EC2 instance with SSL termination                                       |
+| **DuckDNS**                   | Persistent domain mapped to EC2 public IP for stable OAuth callbacks and API access                            |
 
 ---
 
