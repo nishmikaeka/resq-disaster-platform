@@ -27,6 +27,8 @@ jobs:
             # 2. Prevent memory crashes during build (important for t3.micro)
             export NODE_OPTIONS="--max-old-space-size=2048"
 
+            export $(grep -v '^#' apps/web/.env.local | xargs)
+
             # 3. Install and Build
             npm install
             npm run build
