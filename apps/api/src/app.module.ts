@@ -12,6 +12,7 @@ import { UsersController } from './users/users.controller';
 import { UsersModule } from './users/users.module';
 import { HealthModule } from './health/health.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { RagModule } from './rag/rag.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     CloudinaryModule,
     UsersModule,
     HealthModule,
+    RagModule,
   ],
   providers: [
     PrismaService,

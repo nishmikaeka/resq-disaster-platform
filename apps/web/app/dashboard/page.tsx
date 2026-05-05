@@ -7,6 +7,7 @@ import { Plus } from "lucide-react";
 import type { Incident } from "../../types/types/incident";
 import Image from "next/image";
 import IncidentList from "./IncidentList";
+import ChatbotUI from "./ChatbotUI";
 import api from "../../lib/api";
 
 // Dynamic map import — prevents SSR issues
@@ -258,8 +259,8 @@ function DashboardContent() {
             <button
               onClick={() => router.push("/dashboard")}
               className={`flex-1 py-2 px-4 rounded-2xl cursor-pointer font-semibold text-xs md:text-sm transition-all ${activeTab === "emergencies"
-                  ? "bg-[#102d49] text-[#127eeb]"
-                  : "bg-[#27313d] text-[#cfd3d9]"
+                ? "bg-[#102d49] text-[#127eeb]"
+                : "bg-[#27313d] text-[#cfd3d9]"
                 }`}
             >
               Emergencies ({mapIncidents.length})
@@ -269,8 +270,8 @@ function DashboardContent() {
             <button
               onClick={() => router.push("/dashboard?tab=responses")}
               className={`flex-1 py-2 px-4 rounded-2xl cursor-pointer font-semibold text-xs md:text-sm transition-all ${activeTab === "responses"
-                  ? "bg-[#102d49] text-[#127eeb]"
-                  : "bg-[#27313d] text-[#cfd3d9]"
+                ? "bg-[#102d49] text-[#127eeb]"
+                : "bg-[#27313d] text-[#cfd3d9]"
                 }`}
             >
               {user.role === "VOLUNTEER" ? "My Responses" : "My Reports"}
@@ -295,6 +296,9 @@ function DashboardContent() {
           <Plus className="w-8 h-8 text-white" />
         </button>
       )}
+
+      {/* AI Chatbot */}
+      <ChatbotUI />
 
       {/* Incident List */}
       <IncidentList
